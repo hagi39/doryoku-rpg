@@ -1,0 +1,190 @@
+/* ---------- アプリ全体 ---------- */
+.app {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ---------- 上部バー ---------- */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 8px;
+  padding: calc(env(safe-area-inset-top, 0px) + 10px) 16px 10px;
+  background: var(--bg-sub);
+  border-bottom: 2px solid var(--line);
+}
+
+.topbar__title {
+  font-size: 17px;
+  letter-spacing: .04em;
+}
+
+.topbar__right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+/* ---------- 画面本体 ---------- */
+.screen {
+  flex: 1;
+  min-width: 0;
+  padding: 14px 16px calc(var(--tap) + env(safe-area-inset-bottom, 0px) + 28px);
+}
+
+.screen > * + * { margin-top: 14px; }
+
+/* ---------- 下タブ ---------- */
+.tabbar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 30;
+  display: flex;
+  background: var(--bg-sub);
+  border-top: 2px solid var(--line);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.tabbar__btn {
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: var(--tap);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  padding: 6px 2px 5px;
+  color: var(--text-dim);
+  border-top: 3px solid transparent;
+  transition: color .15s;
+}
+
+.tabbar__btn[aria-selected="true"] {
+  color: var(--accent);
+  border-top-color: var(--accent);
+  background: var(--panel-2);
+}
+
+.tabbar__icon { font-size: 16px; line-height: 1; }
+.tabbar__label { font-size: 10px; letter-spacing: .02em; }
+
+.tabbar__btn .tabbar__badge {
+  position: absolute;
+  transform: translate(14px, -12px);
+  min-width: 15px;
+  height: 15px;
+  padding: 0 3px;
+  border-radius: 8px;
+  background: var(--bad);
+  color: #fff;
+  font-size: 10px;
+  line-height: 15px;
+  text-align: center;
+}
+
+/* ---------- 起動画面 ---------- */
+.boot {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  background: var(--bg);
+  text-align: center;
+  padding: 24px;
+}
+
+.boot__logo { font-size: 26px; letter-spacing: .12em; }
+.boot__msg  { font-size: 13px; color: var(--text-dim); white-space: pre-wrap; }
+
+/* ---------- トースト ---------- */
+.toast-host {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: calc(var(--tap) + env(safe-area-inset-bottom, 0px) + 12px);
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 0 16px;
+  pointer-events: none;
+}
+
+.toast {
+  max-width: 100%;
+  padding: 8px 14px;
+  background: var(--panel);
+  border: 2px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  font-size: 13px;
+  animation: toast-in .18s ease-out;
+}
+
+.toast--good { border-color: var(--good); }
+.toast--bad  { border-color: var(--bad); }
+
+@keyframes toast-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* ---------- モーダル ---------- */
+.modal-host {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgba(0,0,0,.5);
+  padding: 16px;
+  padding-top: calc(env(safe-area-inset-top, 0px) + 24px);
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 16px);
+}
+
+.modal {
+  width: 100%;
+  max-width: 520px;
+  max-height: 100%;
+  overflow-y: auto;
+  background: var(--panel);
+  border: 2px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 16px;
+}
+
+.modal__title {
+  font-size: 16px;
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid var(--line-soft);
+}
+
+.modal__actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.modal__actions > * { flex: 1; }
+
+@media (min-width: 520px) {
+  .modal-host { align-items: center; }
+}

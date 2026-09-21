@@ -1,0 +1,12 @@
+{
+  "name": "doryoku-rpg",
+  "version": "0.1.0",
+  "private": true,
+  "description": "努力RPG — 単一HTMLの学習支援アプリ",
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs",
+    "test": "node test/run-tests.mjs",
+    "check": "node build.mjs && node test/run-tests.mjs && node test/check-bundle.mjs"
+  }
+}

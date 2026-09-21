@@ -1,0 +1,225 @@
+/* ---------- カード ---------- */
+.card {
+  background: var(--panel);
+  border: 2px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 12px 14px;
+}
+
+.card--flat { box-shadow: none; background: var(--panel-2); }
+
+.card__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.card__title { font-size: 14px; letter-spacing: .04em; }
+.card__note  { font-size: 11px; color: var(--text-dim); }
+
+.section-title {
+  font-size: 12px;
+  letter-spacing: .12em;
+  color: var(--text-dim);
+  margin-bottom: 6px;
+}
+
+/* ---------- ボタン ---------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: var(--tap);
+  padding: 8px 14px;
+  background: var(--panel-2);
+  border: 2px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  font-size: 14px;
+  text-align: center;
+  transition: transform .08s, background .12s;
+}
+
+.btn:active { transform: translateY(2px); box-shadow: none; }
+.btn[disabled] { opacity: .45; pointer-events: none; }
+
+.btn--primary { background: var(--accent); border-color: var(--accent-2); color: var(--on-accent); }
+.btn--danger  { border-color: var(--bad); color: var(--bad); }
+.btn--ghost   { background: transparent; box-shadow: none; }
+.btn--sm      { min-height: 34px; padding: 4px 10px; font-size: 12px; }
+.btn--block   { display: flex; width: 100%; }
+
+.btn-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.btn-row > .btn { flex: 1 1 140px; }
+
+/* ---------- 入力 ---------- */
+.field { display: block; margin-bottom: 12px; }
+
+.field__label {
+  display: block;
+  font-size: 12px;
+  color: var(--text-dim);
+  margin-bottom: 4px;
+}
+
+.field__hint {
+  display: block;
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-top: 4px;
+}
+
+.input, .select, .textarea {
+  width: 100%;
+  min-height: var(--tap);
+  padding: 8px 10px;
+  background: var(--panel-2);
+  border: 2px solid var(--line);
+  border-radius: var(--radius);
+  font-size: 15px; /* iOS のズーム防止のため 16px 未満にしない値を維持 */
+}
+
+.input, .select { font-size: 16px; }
+
+.textarea {
+  min-height: 120px;
+  font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
+  font-size: 12px;
+  line-height: 1.6;
+  white-space: pre;
+  overflow-wrap: normal;
+  overflow-x: auto;
+}
+
+/* ---------- チップ ---------- */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border: 2px solid var(--line);
+  border-radius: 999px;
+  background: var(--panel-2);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.chip--on { background: var(--accent); border-color: var(--accent-2); color: var(--on-accent); }
+.chip--int { border-color: var(--int); color: var(--int); }
+.chip--str { border-color: var(--str); color: var(--str); }
+.chip--sta { border-color: var(--sta); color: var(--sta); }
+
+.chip-row { display: flex; flex-wrap: wrap; gap: 6px; }
+
+/* ---------- メーター ---------- */
+.meter {
+  height: 12px;
+  background: var(--panel-2);
+  border: 2px solid var(--line);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.meter__fill {
+  height: 100%;
+  background: var(--accent);
+  transition: width .3s ease-out;
+}
+
+.meter--int .meter__fill { background: var(--int); }
+.meter--str .meter__fill { background: var(--str); }
+.meter--sta .meter__fill { background: var(--sta); }
+.meter--rust .meter__fill { background: var(--bad); }
+
+.stat-row {
+  display: grid;
+  grid-template-columns: 3.2em 1fr 3.2em;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.stat-row + .stat-row { margin-top: 6px; }
+.stat-row__val { text-align: right; font-variant-numeric: tabular-nums; }
+
+/* ---------- 一覧 ---------- */
+.list { display: flex; flex-direction: column; gap: 8px; }
+
+.list-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  background: var(--panel);
+  border: 2px solid var(--line);
+  border-radius: var(--radius);
+  text-align: left;
+}
+
+.list-item__main { flex: 1; min-width: 0; }
+.list-item__name { font-size: 14px; }
+.list-item__sub  { font-size: 11px; color: var(--text-dim); }
+.list-item__side { flex: none; font-size: 11px; color: var(--text-dim); text-align: right; }
+
+.empty {
+  padding: 18px 12px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--text-dim);
+}
+
+/* ---------- 注意書き ---------- */
+.notice {
+  padding: 10px 12px;
+  border: 2px dashed var(--line);
+  border-radius: var(--radius);
+  background: var(--panel-2);
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+.notice--warn { border-color: var(--warn); color: var(--text); }
+.notice--bad  { border-color: var(--bad); color: var(--text); }
+
+/* ---------- 状態バッジ ---------- */
+.badge {
+  display: inline-block;
+  padding: 1px 6px;
+  border-radius: 2px;
+  font-size: 10px;
+  letter-spacing: .06em;
+  border: 1px solid currentColor;
+}
+
+.badge--ok    { color: var(--good); }
+.badge--warn  { color: var(--warn); }
+.badge--bad   { color: var(--bad); }
+.badge--lock  { color: var(--text-dim); }
+
+/* ---------- テーブル ---------- */
+.table-wrap { overflow-x: auto; }
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.table th, .table td {
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--line-soft);
+  text-align: left;
+  white-space: nowrap;
+}
+
+.table th { color: var(--text-dim); font-weight: normal; }

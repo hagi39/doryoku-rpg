@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="努力RPG">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#1b1f2a">
+<meta name="built-at" content="<!--@BUILT_AT-->">
+<title>努力RPG</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DotGothic16&display=swap">
+<!--@CSS-->
+</head>
+<body>
+
+<div id="app" class="app" hidden>
+  <header class="topbar" id="topbar">
+    <div class="topbar__title" id="topbar-title">ホーム</div>
+    <div class="topbar__right" id="topbar-right"></div>
+  </header>
+
+  <main class="screen" id="screen" tabindex="-1"></main>
+
+  <nav class="tabbar" id="tabbar" role="tablist" aria-label="メニュー">
+    <button class="tabbar__btn" role="tab" data-tab="home"><span class="tabbar__icon">◆</span><span class="tabbar__label">ホーム</span></button>
+    <button class="tabbar__btn" role="tab" data-tab="tree"><span class="tabbar__icon">⛊</span><span class="tabbar__label">ツリー</span></button>
+    <button class="tabbar__btn" role="tab" data-tab="learn"><span class="tabbar__icon">▤</span><span class="tabbar__label">学ぶ</span></button>
+    <button class="tabbar__btn" role="tab" data-tab="log"><span class="tabbar__icon">✎</span><span class="tabbar__label">記録</span></button>
+    <button class="tabbar__btn" role="tab" data-tab="quest"><span class="tabbar__icon">⚑</span><span class="tabbar__label">冒険</span></button>
+    <button class="tabbar__btn" role="tab" data-tab="settings"><span class="tabbar__icon">⚙</span><span class="tabbar__label">設定</span></button>
+  </nav>
+</div>
+
+<div id="boot" class="boot">
+  <div class="boot__logo">努力RPG</div>
+  <div class="boot__msg" id="boot-msg">よみこみ中…</div>
+</div>
+
+<div id="toast-host" class="toast-host" aria-live="polite"></div>
+<div id="modal-host" class="modal-host" hidden></div>
+
+<!--@JS-->
+</body>
+</html>

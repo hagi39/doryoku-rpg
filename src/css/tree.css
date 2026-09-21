@@ -1,0 +1,198 @@
+/* ---------- ツリー表示 ---------- */
+
+.seg {
+  display: flex;
+  gap: 0;
+  border: 2px solid var(--line);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--panel-2);
+}
+
+.seg__btn {
+  flex: 1 1 0;
+  min-height: 40px;
+  padding: 6px 10px;
+  font-size: 14px;
+  color: var(--text-dim);
+}
+
+.seg__btn + .seg__btn { border-left: 2px solid var(--line); }
+.seg__btn[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); }
+
+/* 開閉するツリー */
+.tree-card { padding: 0; overflow: hidden; }
+
+.tree-card__head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 12px 14px;
+  text-align: left;
+}
+
+.tree-card__name { flex: 1; min-width: 0; font-size: 15px; }
+.tree-card__count { font-size: 11px; color: var(--text-dim); font-variant-numeric: tabular-nums; }
+.tree-card__caret { font-size: 12px; color: var(--text-dim); transition: transform .15s; }
+.tree-card__head[aria-expanded="true"] .tree-card__caret { transform: rotate(90deg); }
+
+.tree-card__body {
+  padding: 4px 10px 14px;
+  border-top: 2px solid var(--line-soft);
+}
+
+.tree-card__actions {
+  display: flex;
+  gap: 8px;
+  padding: 10px 4px 4px;
+}
+
+.tree-card__actions > * { flex: 1; }
+
+/* 盤面 */
+.tree {
+  position: relative;
+  padding: 6px 2px;
+}
+
+.tree__lines {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.tree__line {
+  fill: none;
+  stroke: var(--line);
+  stroke-width: 2;
+}
+
+.tree__line--open { stroke: var(--accent); stroke-width: 2.5; }
+.tree__line--locked { stroke: var(--line-soft); stroke-dasharray: 3 4; }
+
+.tree__level {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+
+.tree__level + .tree__level { margin-top: 22px; }
+
+/* ノード */
+.node {
+  flex: 0 0 calc((100% - 16px) / 3);
+  min-width: 0;
+  min-height: 56px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center;
+  gap: 3px;
+  padding: 6px 6px 5px;
+  background: var(--panel-2);
+  border: 2px solid var(--line);
+  border-radius: var(--radius);
+  text-align: center;
+}
+
+.node__name {
+  font-size: 11px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.node__meta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  font-size: 9px;
+  color: var(--text-dim);
+}
+
+.node__rust {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--line-soft);
+  overflow: hidden;
+}
+
+.node__rust > i {
+  display: block;
+  height: 100%;
+  background: var(--bad);
+}
+
+/* 状態 */
+.node--locked {
+  opacity: .5;
+  border-style: dashed;
+}
+
+.node--unlocked {
+  background: var(--panel);
+  border-color: var(--good);
+}
+
+.node--open {
+  border-color: var(--accent);
+  color: var(--accent);
+  box-shadow: 0 0 0 2px var(--glow) inset;
+  animation: node-glow 1.6s ease-in-out infinite;
+}
+
+@keyframes node-glow {
+  0%, 100% { box-shadow: 0 0 0 2px var(--glow) inset; }
+  50%      { box-shadow: 0 0 0 4px var(--glow) inset; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .node--open { animation: none; box-shadow: 0 0 0 3px var(--glow) inset; }
+}
+
+.node--rusty { border-color: var(--bad); }
+
+/* 他ツリーの前提 */
+.node__cross {
+  color: var(--accent);
+  font-size: 9px;
+}
+
+.tree-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 8px 4px 0;
+  font-size: 10px;
+  color: var(--text-dim);
+}
+
+.tree-legend span::before {
+  content: "■ ";
+}
+
+.tree-legend .lg-open   { color: var(--accent); }
+.tree-legend .lg-done   { color: var(--good); }
+.tree-legend .lg-rust   { color: var(--bad); }
+.tree-legend .lg-lock   { color: var(--text-dim); }
+
+/* スキルの詳細 */
+.skill-detail__desc { font-size: 13px; margin-bottom: 10px; }
+
+.skill-detail__row {
+  display: flex;
+  gap: 8px;
+  font-size: 12px;
+  padding: 5px 0;
+  border-top: 1px solid var(--line-soft);
+}
+
+.skill-detail__key { flex: 0 0 5.5em; color: var(--text-dim); }
+.skill-detail__val { flex: 1; min-width: 0; }
