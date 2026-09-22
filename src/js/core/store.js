@@ -65,6 +65,8 @@
       skills: {},          // skillId → {unlocked, unlockedAt, polishCount, polishedAt}
       logs: [],            // 記録の履歴(新しい順)
       reviewList: [],      // 復習リスト(最大300)
+      testLog: [],         // AIテストの履歴(新しい順)
+      diagnoses: {},       // treeId → 最後の診断結果
       materials: {},       // skillId → 教材
       geo: { countries: {}, areasCleared: [] },
       companions: { chick: false },
@@ -139,6 +141,8 @@
     out.skills = saved.skills && typeof saved.skills === 'object' ? saved.skills : {};
     out.logs = Array.isArray(saved.logs) ? saved.logs : [];
     out.reviewList = Array.isArray(saved.reviewList) ? saved.reviewList : [];
+    out.testLog = Array.isArray(saved.testLog) ? saved.testLog : [];
+    out.diagnoses = saved.diagnoses && typeof saved.diagnoses === 'object' ? saved.diagnoses : {};
     out.materials = saved.materials && typeof saved.materials === 'object' ? saved.materials : {};
     out.daily = saved.daily && typeof saved.daily === 'object' ? saved.daily : {};
     out.ver = PROGRESS_VER;

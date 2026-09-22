@@ -71,7 +71,7 @@
 
     const result = U.el('div', { style: 'margin-top:8px' });
 
-    const saveBtn = U.el('button', { class: 'btn btn--primary', text: '保存' });
+    const saveBtn = U.el('button', { class: 'btn btn--primary', text: 'AI設定を保存' });
     saveBtn.addEventListener('click', function () {
       app.settings.apiKey = keyInput.value.trim();
       app.settings.model = modelSelect.value;
@@ -282,7 +282,7 @@
     const checkBtn = U.el('button', { class: 'btn', text: '検証' });
     checkBtn.addEventListener('click', function () { runCheck(false); });
 
-    const saveBtn = U.el('button', { class: 'btn btn--primary', text: '保存' });
+    const saveBtn = U.el('button', { class: 'btn btn--primary', text: 'ツリーを保存' });
     saveBtn.addEventListener('click', function () {
       const parsed = runCheck(true);
       if (!parsed) { app.toast('エラーがあるので保存しませんでした', 'bad'); return; }

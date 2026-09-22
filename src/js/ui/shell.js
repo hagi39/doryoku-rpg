@@ -212,7 +212,7 @@
 
       if (opts.actions && opts.actions.length) {
         const row = U.el('div', { class: 'modal__actions' });
-        for (const action of opts.actions) {
+        for (const action of opts.actions.filter(Boolean)) {
           row.appendChild(U.el('button', {
             class: 'btn' + (action.kind ? ' btn--' + action.kind : ''),
             text: action.label,
@@ -225,12 +225,18 @@
       }
 
       host.appendChild(box);
-      if (opts.dismissable !== false) {
-        host.addEventListener('click', function (e) {
-          if (e.target === host) close();
-        });
-      }
+      // 前のモーダルの設定が残らないよう、毎回付け替える(テスト中は背景を押しても閉じない)
+      host.onclick = opts.dismissable === false ? null : function (e) {
+        if (e.target === host) close();
+      };
       return { close: close, body: body };
+    },
+
+    closeModal: function () {
+      const host = U.qs('#modal-host');
+      host.hidden = true;
+      host.innerHTML = '';
+      host.onclick = null;
     },
 
     confirm: function (title, message, onYes) {

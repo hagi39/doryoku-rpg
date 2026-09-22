@@ -154,6 +154,138 @@
     return { already: false, gains: gains, skill: skill };
   }
 
+  // ---------------- AIテスト ----------------
+
+  const MAX_TEST_LOG = 200;
+
+  /** まちがえた問題(外した問題を除く)を復習リストへ */
+  function saveMistakes(app, score, now) {
+    let n = 0;
+    for (const r of score.results) {
+      if (r.flagged || r.correct) continue;
+      global.Quiz.addMistake(app.progress.reviewList, r.q, now);
+      n++;
+    }
+    return n;
+  }
+
+  function pushTestLog(app, entry) {
+    const log = app.progress.testLog || (app.progress.testLog = []);
+    log.unshift(entry);
+    if (log.length > MAX_TEST_LOG) log.length = MAX_TEST_LOG;
+  }
+
+  /**
+   * 解放テストの答えを採点し、合格なら解放する。まちがいは復習リストへ。
+   * @param {Array<{q, given, flagged}>} items
+   */
+  function finishUnlockTest(app, skillId, items, opts) {
+    const now = (opts && opts.now) || Date.now();
+    const score = global.Quiz.scoreTest(items);
+    const verdict = global.Quiz.judge(score);
+    const mistakes = saveMistakes(app, score, now);
+
+    let unlock = null;
+    if (verdict === 'pass') unlock = unlockSkill(app, skillId, 'test', { now: now, save: false });
+
+    pushTestLog(app, {
+      at: now, type: 'unlock', skillId: skillId, level: opts && opts.level,
+      valid: score.valid, correct: score.correct, verdict: verdict,
+    });
+    app.save();
+    return { score: score, verdict: verdict, unlock: unlock, mistakes: mistakes,
+      need: global.Quiz.passLine(score.valid) };
+  }
+
+  /** 記録の種類から「復習のみ」を探す(JSONで消されていたら重みがいちばん小さいもの) */
+  function reviewKind(app) {
+    const kinds = app.treeData.kinds || [];
+    return kinds.find(function (k) { return k.id === 'review'; }) ||
+      kinds.slice().sort(function (a, b) { return a.weight - b.weight; })[0];
+  }
+
+  /**
+   * 復習テストの答えを採点する。合格なら「復習のみ」の記録として扱う
+   * (サビが0に戻り、磨いた回数+1、経験値とパラメーターも入る)。
+   */
+  function finishReviewTest(app, skillId, items, opts) {
+    const now = (opts && opts.now) || Date.now();
+    const Q = global.Quiz;
+    const score = Q.scoreTest(items);
+    const verdict = Q.judge(score, Q.C.REVIEW_PASS_RATIO);
+    const rustBefore = app.rust(skillId, now);
+    const mistakes = saveMistakes(app, score, now);
+
+    let log = null;
+    if (verdict === 'pass') {
+      const kind = reviewKind(app);
+      log = recordLog(app, {
+        skillId: skillId,
+        kindId: kind.id,
+        note: 'AI復習テストに合格(' + score.correct + '/' + score.valid + ')',
+        now: now,
+      });
+    }
+
+    pushTestLog(app, {
+      at: now, type: 'review', skillId: skillId,
+      valid: score.valid, correct: score.correct, verdict: verdict,
+    });
+    app.save();
+    return {
+      score: score, verdict: verdict, mistakes: mistakes, log: log,
+      rustBefore: rustBefore, need: Q.passLine(score.valid, Q.C.REVIEW_PASS_RATIO),
+    };
+  }
+
+  /**
+   * 診断の答えを採点し、正解したスキルとその前提をまとめて解放する。
+   * @param {{claimId?:string, memo?:string, now?:number}} opts
+   */
+  function finishDiagnosis(app, treeId, items, opts) {
+    const o = opts || {};
+    const now = o.now || Date.now();
+    const Q = global.Quiz;
+    const score = Q.scoreTest(items);
+    const treeSkills = app.treeData.skills.filter(function (s) { return s.tree === treeId; });
+    const outcome = Q.diagnosisOutcome({
+      treeSkills: treeSkills,
+      skillById: app.skillById,
+      results: score.results.map(function (r) { return { skillId: r.q.skillId, correct: r.correct }; }),
+    });
+
+    const unlocked = [];
+    const gains = {};
+    for (const id of outcome.unlockIds) {
+      const res = unlockSkill(app, id, 'diagnosis', { now: now, save: false });
+      if (res.already) continue;
+      unlocked.push(id);
+      for (const k of Object.keys(res.gains)) gains[k] = U.round1((gains[k] || 0) + res.gains[k]);
+    }
+    const mistakes = saveMistakes(app, score, now);
+
+    const record = {
+      at: now,
+      claimId: o.claimId || null,
+      memo: (o.memo || '').slice(0, 300),
+      frontierId: outcome.frontierId,
+      valid: score.valid,
+      correct: score.correct,
+      unlocked: unlocked,
+      results: score.results.map(function (r) { return { skillId: r.q.skillId, correct: r.correct }; }),
+      comment: null,
+    };
+    if (!app.progress.diagnoses) app.progress.diagnoses = {};
+    app.progress.diagnoses[treeId] = record;
+
+    pushTestLog(app, {
+      at: now, type: 'diagnosis', treeId: treeId,
+      valid: score.valid, correct: score.correct, unlocked: unlocked.length,
+    });
+    app.save();
+    return { score: score, outcome: outcome, unlocked: unlocked, gains: gains, mistakes: mistakes, record: record };
+  }
+
   /** サビ50%未満の解放済みスキル数(草原の入場条件に使う) */
   function freshSkillCount(app, now) {
     const t = now == null ? Date.now() : now;
@@ -165,5 +297,6 @@
   global.Actions = {
     MAX_LOGS,
     recordLog, unlockSkill, freshSkillCount, applyPartialRecovery,
+    finishUnlockTest, finishReviewTest, finishDiagnosis, saveMistakes,
   };
 })(typeof window !== 'undefined' ? window : globalThis);

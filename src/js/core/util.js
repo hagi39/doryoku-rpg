@@ -55,6 +55,8 @@
         else if (k === 'html') node.innerHTML = v;
         else if (k === 'text') node.textContent = v;
         else if (k === 'dataset') Object.assign(node.dataset, v);
+        // textarea は value 属性を無視するので、プロパティに入れる
+        else if (k === 'value') node.value = v;
         else if (k.startsWith('on') && typeof v === 'function') {
           node.addEventListener(k.slice(2).toLowerCase(), v);
         } else node.setAttribute(k, v === true ? '' : v);

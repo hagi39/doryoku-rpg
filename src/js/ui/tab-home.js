@@ -105,6 +105,7 @@
     // 1. まだ一度も診断していないツリー
     const untested = app.treeData.trees.filter(function (tree) {
       if (!isTestTree(app, tree)) return false;
+      if ((app.progress.diagnoses || {})[tree.id]) return false;
       return !app.treeData.skills.some(function (s) {
         return s.tree === tree.id && app.isUnlocked(s.id);
       });

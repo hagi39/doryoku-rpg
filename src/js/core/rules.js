@@ -84,9 +84,12 @@
     const o = opts || {};
     const now = o.now == null ? Date.now() : o.now;
     const factor = o.hasChick ? C.CHICK_RUST_MULT : 1;
+    const r = Math.max(0, Math.min(1, targetRust));
+    // サビ0は「磨いた直後」。安全な日数をまるごと残す(safe の端に置くとすぐサビ始めてしまう)
+    if (r === 0) return now;
     const safe = safeDays(polishCount);
     const full = fullDays(polishCount);
-    const effElapsed = safe + Math.max(0, Math.min(1, targetRust)) * (full - safe);
+    const effElapsed = safe + r * (full - safe);
     return now - (effElapsed / factor) * DAY_MS;
   }
 

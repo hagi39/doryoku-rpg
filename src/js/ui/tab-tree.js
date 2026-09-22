@@ -266,6 +266,10 @@
     if (state.unlocked) {
       return [
         { label: 'とじる', kind: 'ghost' },
+        state.needsTest ? {
+          label: '復習テスト',
+          onClick: function () { global.Tests.review(app, skill); return false; },
+        } : null,
         {
           label: 'これを記録する',
           kind: 'primary',
@@ -296,7 +300,7 @@
       {
         label: '解放テスト',
         kind: 'primary',
-        onClick: function () { startUnlockTest(app, skill); },
+        onClick: function () { return startUnlockTest(app, skill); },
       },
     ];
   }
@@ -313,26 +317,17 @@
     app.render();
   }
 
-  // ---------------- AIテストの入口(P4で中身を作る) ----------------
+  // ---------------- AIテストの入口 ----------------
 
   function startUnlockTest(app, skill) {
-    if (!global.Ai.available()) {
-      notReady(app, 'APIキーが設定されていないため、解放テストは受けられません。設定タブでキーを入れるか、自己申告で解放してください。', skill);
-      return false;
-    }
-    notReady(app, '解放テストは次のフェーズ(P4)で作ります。いまは自己申告で解放してください。', skill);
+    global.Tests.unlock(app, skill, {
+      onSelfUnlock: function (s) { doUnlock(app, s, 'self'); },
+    });
     return false;
   }
 
   function startDiagnosis(app, tree) {
-    const msg = global.Ai.available()
-      ? '診断は次のフェーズ(P4)で作ります。それまでは、できるスキルを自己申告で解放してください。'
-      : 'APIキーが設定されていないため診断は使えません。設定タブでキーを入れるか、できるスキルを自己申告で解放してください。';
-    app.modal({
-      title: tree.name + ' の診断',
-      body: U.el('p', { text: msg }),
-      actions: [{ label: 'わかった', kind: 'primary' }],
-    });
+    global.Tests.diagnose(app, tree);
   }
 
   function notReady(app, message, skill) {
