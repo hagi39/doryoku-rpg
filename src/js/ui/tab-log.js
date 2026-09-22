@@ -30,7 +30,45 @@
     }
 
     root.appendChild(formCard(app, unlocked, now));
+    const review = reviewCard(app, unlocked, now);
+    if (review) root.appendChild(review);
     root.appendChild(historyCard(app));
+  }
+
+  // ---------------- 復習テストの入口 ----------------
+
+  /** サビの濃い勉強スキルから順に、AIの復習テストへの入口を出す */
+  function reviewCard(app, unlocked, now) {
+    const targets = unlocked
+      .filter(function (s) { return app.needsTest(s); })
+      .map(function (s) { return { skill: s, rust: app.rust(s.id, now) }; })
+      .sort(function (a, b) { return b.rust - a.rust; })
+      .slice(0, 5);
+    if (!targets.length) return null;
+
+    const card = U.el('div', { class: 'card' });
+    card.appendChild(U.el('div', { class: 'card__head' }, [
+      U.el('div', { class: 'card__title', text: '復習テスト' }),
+      U.el('div', { class: 'card__note', text: 'AIが3問出題・合格でサビが0に' }),
+    ]));
+    const list = U.el('div', { class: 'list' });
+    for (const t of targets) {
+      const item = U.el('button', { class: 'list-item' }, [
+        U.el('span', { class: 'list-item__main' }, [
+          U.el('div', { class: 'list-item__name', text: t.skill.name }),
+          U.el('div', { class: 'list-item__sub', text: (app.tree(t.skill.tree) || {}).name || '' }),
+        ]),
+        U.el('span', {
+          class: 'list-item__side',
+          style: t.rust >= R.C.RUST_BONUS_LINE ? 'color:var(--bad)' : null,
+          text: Math.round(t.rust * 100) > 0 ? 'サビ ' + Math.round(t.rust * 100) + '%' : 'サビなし',
+        }),
+      ]);
+      item.addEventListener('click', function () { global.Tests.review(app, t.skill); });
+      list.appendChild(item);
+    }
+    card.appendChild(list);
+    return card;
   }
 
   function emptyGuide(app) {

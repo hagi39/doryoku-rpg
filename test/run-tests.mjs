@@ -22,16 +22,23 @@ for (const rel of [
   'js/core/rules.js',
   'js/core/store.js',
   'js/core/actions.js',
+  'js/core/quiz.js',
+  'js/api/claude.js',
+  'js/api/quiz-gen.js',
 ]) {
   (0, eval)(readFileSync(join(SRC, rel), 'utf8'));
 }
 
-const { U, TreeData, Validate, Rules, Store, Actions, Layout } = globalThis;
+const { U, TreeData, Validate, Rules, Store, Actions, Layout, Quiz, Ai, QuizGen } = globalThis;
 
 let pass = 0;
 const failures = [];
 
+// 非同期のテストは、モックの差し替えがぶつからないよう最後に1つずつ順に流す
+const asyncTests = [];
+
 function test(name, fn) {
+  if (fn.constructor.name === 'AsyncFunction') { asyncTests.push([name, fn]); return; }
   try { fn(); pass++; }
   catch (e) { failures.push(`${name}\n    ${e.message}`); }
 }
@@ -166,6 +173,13 @@ test('ひよこがいるとサビが遅れる', () => {
   const withChick = Rules.rustOf(p, { now, hasChick: true });
   ok(withChick < plain, 'ひよこありのほうがサビが小さいはず');
   near(withChick, (6 * 0.85 - 2) / 8, 1e-9);
+});
+
+test('磨いた直後から安全な日数のあいだはサビない', () => {
+  const now = Date.now();
+  const p = { polishCount: 1, polishedAt: Rules.polishedAtForRust(0, 1, { now }) };
+  eq(Rules.rustOf(p, { now: now + 3.9 * DAY }), 0, '安全な日数(4日)の内側:');
+  ok(Rules.rustOf(p, { now: now + 5 * DAY }) > 0, '安全な日数を過ぎたらサビ始める');
 });
 
 test('使ったスキル経由の部分回復は7割落ちる', () => {
@@ -470,6 +484,360 @@ test('草原の入場条件に使うスキル数はサビ50%未満だけ数え�
   app.progress.skills.math_01.polishedAt = now - 30 * DAY;
   eq(Actions.freshSkillCount(app, now), 3);
 });
+
+// ---------------- AIテスト: 記述式の採点 ----------------
+
+const W = (answer, accepts) => ({ type: 'written', answer, accepts: accepts || [] });
+
+test('記述: 全角・半角と空白の違いを吸収する', () => {
+  ok(Quiz.gradeWritten('１２', W('12')), '全角数字');
+  ok(Quiz.gradeWritten(' Ｘ＝３ ', W('x=3')), '全角英字と空白');
+  ok(Quiz.gradeWritten('「完了」', W('完了')), 'かぎかっこ');
+  ok(Quiz.gradeWritten('完了。', W('完了')), '句点');
+  ok(!Quiz.gradeWritten('', W('完了')), '空欄は不正解');
+});
+
+test('記述: 小数と分数を同じ値として扱う', () => {
+  ok(Quiz.gradeWritten('0.5', W('1/2')), '0.5 = 1/2');
+  ok(Quiz.gradeWritten('１／２', W('0.5')), '全角の分数');
+  ok(Quiz.gradeWritten('2分の1', W('0.5')), '2分の1');
+  ok(Quiz.gradeWritten('0.50', W('1/2')), '0.50');
+  ok(Quiz.gradeWritten('-0.75', W('-3/4')), '負の数');
+  ok(Quiz.gradeWritten('ー3/4', W('-0.75')), '長音記号のマイナス');
+  ok(Quiz.gradeWritten('マイナス4分の3', W('-0.75')), 'マイナス4分の3');
+  ok(Quiz.gradeWritten('x=1/2', W('0.5')), '変数名つき');
+  ok(Quiz.gradeWritten('2.5×10^-3', W('0.0025')), '指数表記');
+  ok(!Quiz.gradeWritten('0.6', W('1/2')), 'ちがう値は不正解');
+});
+
+test('記述: 割り切れない分数は、書いた桁で四捨五入して一致すれば正解', () => {
+  ok(Quiz.gradeWritten('0.33', W('1/3')), '0.33');
+  ok(Quiz.gradeWritten('0.667', W('2/3')), '0.667');
+  ok(!Quiz.gradeWritten('0.3', W('1/3')), '小数第1位までは不正解');
+  ok(!Quiz.gradeWritten('0.34', W('1/3')), '四捨五入がちがう');
+});
+
+test('記述: 別解(accepts)も正解にする。カタカナの長音は消さない', () => {
+  ok(Quiz.gradeWritten('けり', W('完了', ['けり'])));
+  ok(Quiz.gradeWritten('スーパー', W('スーパー')));
+  ok(!Quiz.gradeWritten('スパ', W('スーパー')));
+});
+
+test('記述: 因数分解は因数の並びがちがっても正解', () => {
+  ok(Quiz.gradeWritten('(2x+1)(x+3)', W('(x + 3)(2x + 1)')), '並びが逆');
+  ok(Quiz.gradeWritten('2(x-1)(x+1)', W('2(x+1)(x-1)')), '係数つき');
+  ok(Quiz.gradeWritten('(x+1)^2(x-2)', W('(x-2)(x+1)^2')), '累乗つき');
+  ok(!Quiz.gradeWritten('(x+1)(x+3)', W('(x+3)(2x+1)')), 'ちがう因数は不正解');
+});
+
+// ---------------- AIテスト: 問題の検査と合否 ----------------
+
+const rawQs = [
+  { type: 'choice', skillId: 'math_01', question: 'Q1', choices: ['a', 'b', 'c', 'd'], answer: 2 },
+  { type: 'choice', skillId: 'math_01', question: 'Q2', choices: ['a', 'b', 'c', 'd'], answer: 0 },
+  { type: 'choice', skillId: 'math_01', question: 'Q3', choices: ['a', 'b', 'c', 'd'], answer: 3 },
+  { type: 'written', skillId: 'math_01', question: 'Q4', answer: '1/2' },
+];
+
+test('問題の検査: 壊れた問題を捨て、正解の位置を保ったまま選択肢を混ぜる', () => {
+  U.setRandom(() => 0.3);
+  const got = Quiz.sanitizeQuestions({ questions: rawQs.concat([
+    { type: 'choice', skillId: 'math_01', question: 'bad', choices: ['a', 'b'], answer: 5 },
+    { type: 'choice', skillId: 'math_01', question: 'dup', choices: ['a', 'a', 'b', 'c'], answer: 0 },
+    { type: 'written', skillId: 'math_01', question: 'noanswer', answer: '' },
+    { type: 'choice', skillId: 'eng_01', question: 'other', choices: ['a', 'b', 'c', 'd'], answer: 0 },
+    { type: 'choice', skillId: 'math_01', question: 'Ｑ１', choices: ['a', 'b', 'c', 'd'], answer: 0 },
+  ]) }, { skillIds: ['math_01'] });
+  U.setRandom(null);
+  eq(got.length, 4, '残る問題数:');
+  eq(got[0].choices[got[0].answer], 'c', '正解の選択肢:');
+  eq(got[2].choices[got[2].answer], 'd', '正解の選択肢:');
+  ok(Quiz.pickUnlockSet(got), '選択3+記述1がそろう');
+  eq(Quiz.pickUnlockSet(got.slice(0, 3)), null, '記述がないとそろわない');
+});
+
+test('合否: 4問中3問で合格、2問は不合格', () => {
+  const qs = Quiz.sanitizeQuestions(rawQs);
+  const ans = (miss) => qs.map((q, i) => ({ q, given: i < miss ? '__' : (q.type === 'choice' ? q.answer : '0.5') }));
+  eq(Quiz.judge(Quiz.scoreTest(ans(0))), 'pass');
+  eq(Quiz.judge(Quiz.scoreTest(ans(1))), 'pass');
+  eq(Quiz.judge(Quiz.scoreTest(ans(2))), 'fail');
+});
+
+test('合否: 「おかしい」で外した問題は数えず、外しても合格しやすくはならない', () => {
+  const qs = Quiz.sanitizeQuestions(rawQs);
+  const items = qs.map((q) => ({ q, given: q.type === 'choice' ? q.answer : '0.5' }));
+  items[0].flagged = true;
+  items[1].given = -1;
+  const score = Quiz.scoreTest(items);
+  eq(score.valid, 3, '有効:');
+  eq(score.correct, 2, '正解:');
+  eq(Quiz.judge(score), 'fail', '3問中2問は不合格:');
+  items[2].flagged = true; items[3].flagged = true;
+  eq(Quiz.judge(Quiz.scoreTest(items)), 'void', '有効1問では判定しない:');
+});
+
+// ---------------- AIテスト: 診断 ----------------
+
+const skillById = U.byId(data.skills);
+const mathSkills = data.skills.filter((s) => s.tree === 'math');
+
+test('診断: 自己申告のスキルと前提から出題し、1つ先を1問足す(最大6問)', () => {
+  U.setRandom(() => 0);
+  const ids = Quiz.diagnosisTargets({ treeSkills: mathSkills, skillById, claimIds: ['math_26'] });
+  U.setRandom(null);
+  ok(ids.length <= 6, '6問以内: ' + ids.length);
+  ok(ids.includes('math_26'), '自己申告したスキルを含む');
+  eq(ids[ids.length - 1], 'math_27', '最後は1つ先:');
+  const anc = Quiz.ancestorsOf('math_26', skillById);
+  for (const id of ids.slice(0, -1)) ok(id === 'math_26' || anc.has(id), '前提以外が混ざった: ' + id);
+  eq(new Set(ids).size, ids.length, '重複なし:');
+});
+
+test('診断: 何も選ばなければツリーの入口から出題する', () => {
+  const ids = Quiz.diagnosisTargets({ treeSkills: mathSkills, skillById, claimIds: [] });
+  ok(ids.length > 0 && ids.length <= 6);
+  for (const id of ids) {
+    ok(!skillById.get(id).requires.some((r) => r.startsWith('math_')), '入口でない: ' + id);
+  }
+});
+
+test('診断: 正解したスキルと前提(他ツリー含む)を解放し、いちばん先を返す', () => {
+  const physSkills = data.skills.filter((s) => s.tree === 'phys');
+  const out = Quiz.diagnosisOutcome({
+    treeSkills: physSkills, skillById,
+    results: [{ skillId: 'phys_01', correct: true }, { skillId: 'phys_04', correct: true }, { skillId: 'phys_05', correct: false }],
+  });
+  eq(out.frontierId, 'phys_04', 'いちばん先:');
+  ok(out.unlockIds.includes('math_21'), '他ツリーの前提も解放');
+  ok(!out.unlockIds.includes('phys_05'), 'まちがえたスキルは解放しない');
+  for (const id of out.unlockIds) {
+    for (const r of skillById.get(id).requires) ok(out.unlockIds.includes(r), '前提が抜けた: ' + r);
+  }
+});
+
+// ---------------- AIテスト: 復習リスト ----------------
+
+test('復習リスト: 同じ問題はまとめ、2回連続正解で克服、まちがえると戻る', () => {
+  const list = [];
+  const q = { type: 'written', skillId: 'math_01', question: '問1', answer: '3' };
+  Quiz.addMistake(list, q, 1);
+  Quiz.addMistake(list, { ...q, question: '問１' }, 2);
+  eq(list.length, 1, '件数:');
+  eq(list[0].misses, 2, 'まちがい回数:');
+  Quiz.recordReview(list[0], true, 3);
+  ok(!list[0].cleared, '1回では克服しない');
+  Quiz.recordReview(list[0], false, 4);
+  Quiz.recordReview(list[0], true, 5);
+  ok(!list[0].cleared, '連続でないと克服しない');
+  Quiz.recordReview(list[0], true, 6);
+  ok(list[0].cleared, '2回連続で克服');
+});
+
+test('復習リスト: 300問を超えたら克服済みの古いものから捨てる', () => {
+  const list = [];
+  for (let i = 0; i < 300; i++) Quiz.addMistake(list, { skillId: 's', question: 'q' + i }, i);
+  list[5].cleared = true;
+  Quiz.addMistake(list, { skillId: 's', question: 'new' }, 1000);
+  eq(list.length, 300, '件数:');
+  ok(!list.some((it) => it.q.question === 'q5'), '克服済みが消える');
+  Quiz.addMistake(list, { skillId: 's', question: 'new2' }, 1001);
+  ok(!list.some((it) => it.q.question === 'q0'), '次はいちばん古いものが消える');
+});
+
+test('解放テスト: 合格で解放、まちがいは復習リストへ、外した問題は入れない', () => {
+  const app = makeApp(U.deepClone(data));
+  const qs = Quiz.sanitizeQuestions(rawQs);
+  const items = qs.map((q) => ({ q, given: q.type === 'choice' ? q.answer : '0.5' }));
+  items[0].given = -1;
+  items[1].flagged = true;
+  items[1].given = -1;
+  let res = Actions.finishUnlockTest(app, 'math_01', items, { now: 10 });
+  eq(res.verdict, 'fail', '3問中2問:');
+  ok(!app.isUnlocked('math_01'), '不合格では解放しない');
+  eq(app.progress.reviewList.length, 1, '復習リスト:');
+  eq(app.progress.reviewList[0].q.question, 'Q1', 'まちがえた問題だけ:');
+
+  items[0].given = items[0].q.answer;
+  res = Actions.finishUnlockTest(app, 'math_01', items, { now: 20 });
+  eq(res.verdict, 'pass');
+  ok(app.isUnlocked('math_01'), '合格で解放');
+  eq(app.progress.skills.math_01.unlockedBy, 'test');
+  eq(app.progress.testLog.length, 2, 'テストの履歴:');
+});
+
+test('復習テスト: 3問中2問で合格し、「復習のみ」の記録としてサビが0に戻る', () => {
+  const app = makeApp(U.deepClone(data));
+  const now = Date.now();
+  Actions.unlockSkill(app, 'math_01', 'self', { now: now - 30 * DAY });
+  near(app.rust('math_01', now), 1, 1e-9, '30日後:');
+  const qs = Quiz.pickReviewSet(Quiz.sanitizeQuestions(rawQs));
+  eq(qs.length, 3, '選択2+記述1:');
+  const items = qs.map((q) => ({ q, given: q.type === 'choice' ? q.answer : '0.5' }));
+  items[0].given = -1;
+  const xpBefore = app.progress.totalXp;
+  const res = Actions.finishReviewTest(app, 'math_01', items, { now });
+  eq(res.verdict, 'pass', '2/3:');
+  eq(app.rust('math_01', now), 0, 'サビ:');
+  eq(app.progress.skills.math_01.polishCount, 2, '磨いた回数:');
+  eq(app.progress.logs[0].kindId, 'review', '記録の種類:');
+  ok(app.progress.totalXp > xpBefore, '経験値が入る');
+  eq(app.progress.reviewList.length, 1, 'まちがいは復習リストへ:');
+
+  items[1].given = -1;
+  const res2 = Actions.finishReviewTest(app, 'math_01', items, { now });
+  eq(res2.verdict, 'fail', '1/3:');
+  eq(app.progress.logs.length, 1, '不合格では記録しない:');
+});
+
+test('診断: 正解したスキルと前提をまとめて解放し、結果をツリーごとに残す', () => {
+  const app = makeApp(U.deepClone(data));
+  const mk = (skillId, question) => ({ type: 'choice', skillId, question, choices: ['a', 'b'], answer: 0 });
+  const items = [
+    { q: mk('phys_01', 'p1'), given: 0 },
+    { q: mk('phys_04', 'p4'), given: 0 },
+    { q: mk('phys_05', 'p5'), given: 1 },
+    { q: mk('phys_06', 'p6'), given: 1, flagged: true },
+  ];
+  const res = Actions.finishDiagnosis(app, 'phys', items, { claimId: 'phys_05', memo: 'メモ' });
+  eq(res.outcome.frontierId, 'phys_04', 'いちばん先:');
+  ok(app.isUnlocked('phys_04') && app.isUnlocked('math_21'), '他ツリーの前提ごと解放');
+  eq(app.progress.skills.phys_04.unlockedBy, 'diagnosis');
+  ok(!app.isUnlocked('phys_05'), 'まちがえたスキルは解放しない');
+  eq(app.progress.reviewList.length, 1, 'まちがいだけ復習リストへ(外した問題は入れない):');
+  const rec = app.progress.diagnoses.phys;
+  eq(rec.claimId, 'phys_05'); eq(rec.valid, 3); eq(rec.correct, 2);
+  eq(rec.unlocked.length, res.unlocked.length);
+  ok(app.progress.stats.int > 0, '解放報酬が入る');
+});
+
+// ---------------- AIモックでの通し動作 ----------------
+
+const ch = (skillId, question, answer = 0) =>
+  ({ type: 'choice', skillId, question, choices: ['ア', 'イ', 'ウ', 'エ'], answer, explanation: '解説' });
+const wr = (skillId, question, answer) => ({ type: 'written', skillId, question, answer, explanation: '解説' });
+
+/** 正解をそのまま答える */
+const answerAll = (qs) => qs.map((q) => ({ q, given: q.type === 'choice' ? q.answer : q.answer }));
+
+test('通し: 解放テスト(AIの返事を検査 → 解答 → 合格で解放)', async () => {
+  const app = makeApp(U.deepClone(data));
+  const calls = [];
+  Ai.setMock(async (params) => {
+    calls.push(params);
+    // コードフェンスつき・壊れた問題まじりで返す
+    return { text: '```json\n' + JSON.stringify({ questions: [
+      ch('math_01', `展開${calls.length}-1`), ch('math_01', `展開${calls.length}-2`, 3),
+      { type: 'choice', skillId: 'math_01', question: '壊れ', choices: ['a'], answer: 0 },
+      ch('math_01', `展開${calls.length}-3`, 1), ch('math_01', `展開${calls.length}-4`),
+      wr('math_01', `定数項${calls.length}`, '10'), wr('math_01', `係数${calls.length}`, '-2'),
+    ] }) + '\n```' };
+  });
+  try {
+    const qs = await QuizGen.unlockQuestions(app, app.skill('math_01'), { level: 'low' });
+    eq(qs.length, 4, '4問:');
+    eq(qs.filter((q) => q.type === 'written').length, 1, '記述1問:');
+    ok(calls[0].system.includes('高校数学'), '出題方針(hint)をAIに渡す');
+    ok(calls[0].messages[0].content.includes('式の展開と因数分解'), 'スキル名をAIに渡す');
+    ok(calls[0].messages[0].content.includes('基本レベル'), '自信に合わせた難しさを渡す');
+
+    await QuizGen.unlockQuestions(app, app.skill('math_01'), { level: 'mid', avoid: qs.map((q) => q.question) });
+    ok(calls[1].messages[0].content.includes('展開1-1'), '再挑戦では前の問題を避けるよう伝える');
+
+    const res = Actions.finishUnlockTest(app, 'math_01', answerAll(qs));
+    eq(res.verdict, 'pass');
+    ok(app.isUnlocked('math_01'));
+  } finally { Ai.setMock(null); }
+});
+
+test('通し: AIの問題が足りない・JSONでないときは bad-response で自己申告に回せる', async () => {
+  const app = makeApp(U.deepClone(data));
+  try {
+    Ai.setMock(async () => ({ text: JSON.stringify({ questions: [ch('math_01', 'Q')] }) }));
+    let err = null;
+    try { await QuizGen.unlockQuestions(app, app.skill('math_01'), { level: 'mid' }); } catch (e) { err = e; }
+    eq(err && err.kind, 'bad-response', '問題不足:');
+
+    Ai.setMock(async () => ({ text: 'すみません、作れませんでした' }));
+    err = null;
+    try { await QuizGen.reviewQuestions(app, app.skill('math_01'), {}); } catch (e) { err = e; }
+    eq(err && err.kind, 'bad-response', 'JSONでない:');
+  } finally { Ai.setMock(null); }
+});
+
+test('通し: APIキーがなければ no-key で止まる(自己申告の動線に切り替わる)', async () => {
+  eq(Ai.available(), false, 'キーなしでは使えない:');
+  let err = null;
+  try { await Ai.call({ messages: [{ role: 'user', content: 'x' }] }); } catch (e) { err = e; }
+  eq(err && err.kind, 'no-key');
+});
+
+test('通し: 復習テスト(まちがいをAIに伝える → 合格でサビが0)', async () => {
+  const app = makeApp(U.deepClone(data));
+  const now = Date.now();
+  Actions.unlockSkill(app, 'eng_01', 'self', { now: now - 20 * DAY });
+  Quiz.addMistake(app.progress.reviewList, ch('eng_01', '前にまちがえた問題'), now - DAY);
+  let prompt = '';
+  Ai.setMock(async (params) => {
+    prompt = params.messages[0].content;
+    return { text: JSON.stringify({ questions: [
+      ch('eng_01', 'R1'), ch('eng_01', 'R2'), ch('eng_01', 'R3'), wr('eng_01', 'R4', 'went'), wr('eng_01', 'R5', 'gone'),
+    ] }) };
+  });
+  try {
+    const mistakes = app.progress.reviewList.map((it) => it.q.question);
+    const qs = await QuizGen.reviewQuestions(app, app.skill('eng_01'), { mistakes });
+    eq(qs.length, 3, '選択2+記述1:');
+    ok(prompt.includes('前にまちがえた問題'), '復習リストのまちがいをAIに伝える');
+    ok(app.rust('eng_01', now) > 0.9, 'サビている');
+    const res = Actions.finishReviewTest(app, 'eng_01', answerAll(qs), { now });
+    eq(res.verdict, 'pass');
+    eq(app.rust('eng_01', now), 0, 'サビ:');
+  } finally { Ai.setMock(null); }
+});
+
+test('通し: 診断(出題先を選ぶ → 1スキル1問 → 前提ごと解放 → 講評)', async () => {
+  const app = makeApp(U.deepClone(data));
+  const tree = app.tree('phys');
+  const treeSkills = data.skills.filter((s) => s.tree === 'phys');
+  U.setRandom(() => 0);
+  const targets = Quiz.diagnosisTargets({ treeSkills, skillById: app.skillById, claimIds: ['phys_04'] });
+  U.setRandom(null);
+  const calls = [];
+  Ai.setMock(async (params) => {
+    calls.push(params);
+    if (calls.length === 2) return { text: '# 講評\n\n**よくできました**。次は運動量です。' };
+    // 頼まれたスキルに1問ずつ + 余計な問題(別スキル・同じスキルの2問目)
+    const ids = [...params.messages[0].content.matchAll(/skillId "([a-z]+_\d+)"/g)].map((m) => m[1]);
+    return { text: JSON.stringify({ questions: ids.map((id) => ch(id, 'D-' + id))
+      .concat([ch('math_01', 'よそのスキル'), ch(ids[0], '2問目')]) }) };
+  });
+  try {
+    const qs = await QuizGen.diagnosisQuestions(app, tree, targets, { claimName: '運動方程式', memo: 'メモ' });
+    eq(qs.length, targets.length, '1スキル1問:');
+    eq(qs.map((q) => q.skillId).join(), targets.join(), '出題順:');
+    ok(calls[0].messages[0].content.includes('メモ'), 'メモをAIに渡す');
+
+    // 1つ先(最後の問題)だけまちがえる
+    const items = answerAll(qs);
+    items[items.length - 1].given = 9;
+    const res = Actions.finishDiagnosis(app, 'phys', items, { claimId: 'phys_04' });
+    eq(res.outcome.frontierId, 'phys_04', 'いちばん先:');
+    ok(app.isUnlocked('phys_04') && app.isUnlocked('math_21'), '前提(他ツリー含む)ごと解放');
+    ok(!app.isUnlocked(targets[targets.length - 1]), '1つ先は解放しない');
+
+    const comment = await QuizGen.diagnosisComment(app, tree, {
+      claimName: '運動方程式', frontierName: '運動方程式',
+      results: res.record.results.map((r) => ({ skill: r.skillId, correct: r.correct })),
+    });
+    eq(comment, 'よくできました。次は運動量です。', '講評の飾りを外す:');
+  } finally { Ai.setMock(null); }
+});
+
+for (const [name, fn] of asyncTests) {
+  try { await fn(); pass++; }
+  catch (e) { failures.push(`${name}\n    ${e.message}`); }
+}
 
 // ---------------- 結果 ----------------
 

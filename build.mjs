@@ -18,6 +18,7 @@ const CSS_FILES = [
   'css/layout.css',
   'css/components.css',
   'css/tree.css',
+  'css/quiz.css',
 ];
 
 const JS_FILES = [
@@ -28,8 +29,12 @@ const JS_FILES = [
   'js/core/rules.js',
   'js/core/store.js',
   'js/core/actions.js',
+  'js/core/quiz.js',
   'js/api/claude.js',
+  'js/api/quiz-gen.js',
   'js/ui/shell.js',
+  'js/ui/quiz-ui.js',
+  'js/ui/tests.js',
   'js/ui/tab-home.js',
   'js/ui/tab-tree.js',
   'js/ui/tab-learn.js',
