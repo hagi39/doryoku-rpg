@@ -179,11 +179,13 @@
 
 .modal__actions {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
   margin-top: 14px;
 }
 
-.modal__actions > * { flex: 1; }
+/* 3つまでは横に並べ、4つ以上になったら折り返して1つあたりの幅を保つ */
+.modal__actions > * { flex: 1 1 96px; }
 
 @media (min-width: 520px) {
   .modal-host { align-items: center; }

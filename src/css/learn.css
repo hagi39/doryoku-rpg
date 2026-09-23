@@ -1,0 +1,130 @@
+/* 学ぶタブ: 教材の本文と、復習リストの一覧 */
+
+.learn-back { margin-bottom: 10px; }
+
+.learn-desc {
+  font-size: 12px;
+  color: var(--text-dim);
+  margin: 0 0 10px;
+}
+
+.learn-summary {
+  font-size: 13px;
+  line-height: 1.8;
+  margin: 10px 0 0;
+}
+
+.learn-section { margin-top: 16px; }
+
+.learn-point + .learn-point,
+.learn-example + .learn-example { margin-top: 12px; }
+
+.learn-point__title {
+  font-size: 13px;
+  color: var(--accent);
+  margin-bottom: 4px;
+}
+
+/* AIの本文は改行をそのまま生かす */
+.learn-body {
+  font-size: 13px;
+  line-height: 1.9;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.learn-example {
+  border-left: 3px solid var(--line);
+  padding-left: 10px;
+}
+
+.learn-body--solution {
+  margin-top: 6px;
+  color: var(--text-dim);
+}
+
+.learn-pitfall {
+  font-size: 13px;
+  line-height: 1.8;
+  padding-left: 16px;
+  position: relative;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.learn-pitfall + .learn-pitfall { margin-top: 8px; }
+.learn-pitfall::before {
+  content: '!';
+  position: absolute;
+  left: 0;
+  color: var(--warn);
+}
+
+/* ---------------- 開閉するまとまり ---------------- */
+
+.learn-group + .learn-group { margin-top: 10px; }
+
+.learn-group__head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: var(--tap);
+  padding: 0;
+  background: none;
+  border: 0;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.learn-group__caret {
+  flex: none;
+  font-size: 10px;
+  color: var(--text-dim);
+  transition: transform .12s steps(2);
+}
+.learn-group__head[aria-expanded="true"] .learn-group__caret { transform: rotate(90deg); }
+
+.learn-group__name {
+  flex: 1;
+  min-width: 0;
+  font-size: 14px;
+  letter-spacing: .04em;
+}
+
+/* ---------------- 復習リストの1問 ---------------- */
+
+.learn-review-list { margin-top: 10px; }
+
+.learn-review {
+  border-top: 2px solid var(--line-soft);
+  padding: 10px 0;
+}
+
+.learn-review--cleared { opacity: .55; }
+
+.learn-review__q {
+  font-size: 13px;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+
+.learn-review__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  margin-top: 4px;
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+.learn-review__actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .learn-group__caret { transition: none; }
+}

@@ -19,6 +19,7 @@ const CSS_FILES = [
   'css/components.css',
   'css/tree.css',
   'css/quiz.css',
+  'css/learn.css',
 ];
 
 const JS_FILES = [
