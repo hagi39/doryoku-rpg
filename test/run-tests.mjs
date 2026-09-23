@@ -779,6 +779,131 @@ test('診断: 正解したスキルと前提をまとめて解放し、結果を
   ok(app.progress.stats.int > 0, '解放報酬が入る');
 });
 
+// ---------------- 学ぶ(教材・復習リスト) ----------------
+
+const chQ = (skillId, question, answer = 0) =>
+  ({ type: 'choice', skillId, question, choices: ['ア', 'イ', 'ウ', 'エ'], answer, explanation: '解説' });
+
+/** 確認問題・復習で使う解答セットを作る(n問目までを正解にする) */
+function answers(qs, correctCount) {
+  return qs.map((q, i) => ({
+    q,
+    given: i < correctCount ? (q.type === 'choice' ? q.answer : q.answer) : (q.type === 'choice' ? -1 : '__'),
+    flagged: false,
+  }));
+}
+
+test('教材: 保存すると上書きされ、消せる', () => {
+  const app = makeApp(U.deepClone(data));
+  const saved = Actions.saveMaterial(app, 'math_01', { points: [{ title: 'あ', body: 'い' }] },
+    { now: 1000, model: 'claude-haiku-4-5' });
+  eq(saved.at, 1000, '作った時刻:');
+  eq(saved.model, 'claude-haiku-4-5', 'モデル:');
+  eq(app.progress.materials.math_01.points[0].title, 'あ');
+
+  Actions.saveMaterial(app, 'math_01', { points: [{ title: 'う', body: 'え' }] }, { now: 2000 });
+  eq(Object.keys(app.progress.materials).length, 1, 'スキルごと1件:');
+  eq(app.progress.materials.math_01.points[0].title, 'う', '作り直すと上書き:');
+
+  Actions.deleteMaterial(app, 'math_01');
+  eq(app.progress.materials.math_01, undefined, '消せる:');
+});
+
+test('確認問題: 経験値は1日1スキル1回だけ。まちがいは毎回復習リストへ', () => {
+  const app = makeApp(U.deepClone(data));
+  const now = Date.parse('2026-02-03T10:00:00');
+  const qs = [chQ('math_01', 'C1'), chQ('math_01', 'C2'),
+    { type: 'written', skillId: 'math_01', question: 'W1', answer: '5' }];
+
+  const first = Actions.finishMaterialCheck(app, 'math_01', answers(qs, 2), { now });
+  eq(first.score.correct, 2, '正解数:');
+  eq(first.xp, 8, '2問正解で8xp:');
+  eq(first.earnedToday, true, '1回目は経験値あり:');
+  eq(app.progress.totalXp, 8, '通算:');
+  eq(first.mistakes, 1, 'まちがいを復習リストへ:');
+
+  const second = Actions.finishMaterialCheck(app, 'math_01', answers(qs, 3), { now: now + 60000 });
+  eq(second.xp, 0, '同じ日の2回目は経験値なし:');
+  eq(second.earnedToday, false);
+  eq(app.progress.totalXp, 8, '通算は増えない:');
+
+  const other = Actions.finishMaterialCheck(app, 'math_02', answers(qs.map((q) => ({ ...q, skillId: 'math_02' })), 1), { now });
+  eq(other.xp, 4, '別のスキルは別あつかい:');
+
+  const nextDay = Actions.finishMaterialCheck(app, 'math_01', answers(qs, 1), { now: now + DAY });
+  eq(nextDay.xp, 4, '日が変わればまた取れる:');
+});
+
+test('確認問題: サビもパラメーターも動かさない', () => {
+  const app = makeApp(U.deepClone(data));
+  const now = Date.now();
+  Actions.unlockSkill(app, 'math_01', 'self', { now: now - 6 * DAY });
+  app.progress.skills.math_01.polishedAt = now - 6 * DAY;
+  const rustBefore = app.rust('math_01', now);
+  ok(rustBefore > 0, 'サビている');
+
+  const qs = [chQ('math_01', 'C1'), chQ('math_01', 'C2'), chQ('math_01', 'C3')];
+  const statsBefore = JSON.stringify(app.progress.stats);
+  Actions.finishMaterialCheck(app, 'math_01', answers(qs, 3), { now });
+
+  eq(app.rust('math_01', now), rustBefore, 'サビは変わらない:');
+  eq(JSON.stringify(app.progress.stats), statsBefore, 'パラメーターは変わらない:');
+  eq(app.progress.logs.length, 0, '記録は残さない:');
+  eq(app.progress.testLog[0].type, 'check', 'テスト履歴には残す:');
+});
+
+test('復習リストを解く: 経験値が入り、2回連続正解で克服', () => {
+  const app = makeApp(U.deepClone(data));
+  const now = Date.now();
+  const q1 = chQ('math_01', '問1');
+  const q2 = chQ('math_02', '問2');
+  Quiz.addMistake(app.progress.reviewList, q1, now - DAY);
+  Quiz.addMistake(app.progress.reviewList, q2, now - DAY);
+
+  const first = Actions.finishReviewSession(app, answers([q1, q2], 2), { now });
+  eq(first.xp, 8, '2問正解で8xp:');
+  eq(first.cleared, 0, '1回目では克服しない:');
+  eq(app.progress.reviewList[0].streak, 1, '連続正解:');
+
+  const second = Actions.finishReviewSession(app, answers([q1, q2], 1), { now: now + 1000 });
+  eq(second.xp, 4, '1問正解で4xp:');
+  eq(second.cleared, 1, '2回連続で克服:');
+  ok(app.progress.reviewList[0].cleared, '問1は克服');
+  ok(!app.progress.reviewList[1].cleared, '問2はまちがえたので克服しない');
+  eq(app.progress.reviewList[1].misses, 2, 'まちがい回数が増える:');
+  eq(app.progress.testLog[0].type, 'reviewList', 'テスト履歴:');
+});
+
+test('復習リストを解く: 外した問題は正解にも不正解にもしない', () => {
+  const app = makeApp(U.deepClone(data));
+  const now = Date.now();
+  const q = chQ('math_01', '問1');
+  Quiz.addMistake(app.progress.reviewList, q, now - DAY);
+  const item = app.progress.reviewList[0];
+
+  const items = [{ q, given: -1, flagged: true }];
+  const res = Actions.finishReviewSession(app, items, { now });
+  eq(res.xp, 0, '経験値なし:');
+  eq(item.misses, 1, 'まちがい回数は増えない:');
+  eq(item.streak, 0, '連続正解も動かない:');
+});
+
+test('復習リスト: 1問消す / 克服した問題をまとめて消す', () => {
+  const app = makeApp(U.deepClone(data));
+  const list = app.progress.reviewList;
+  for (let i = 0; i < 4; i++) Quiz.addMistake(list, chQ('math_01', '問' + i), i);
+  list[0].cleared = true;
+  list[2].cleared = true;
+
+  eq(Actions.removeReviewItem(app, list[1].id), 1, '消した件数:');
+  eq(list.length, 3, '残り:');
+  eq(Actions.removeReviewItem(app, 'ないid'), 0, 'ない問題は消さない:');
+
+  eq(Actions.removeClearedReviewItems(app), 2, '克服ぶん:');
+  eq(list.length, 1, '残り:');
+  ok(!list.some((it) => it.cleared), '克服済みが残っていない');
+});
+
 // ---------------- AIモックでの通し動作 ----------------
 
 const ch = (skillId, question, answer = 0) =>

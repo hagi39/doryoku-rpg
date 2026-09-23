@@ -286,6 +286,121 @@
     return { score: score, outcome: outcome, unlocked: unlocked, gains: gains, mistakes: mistakes, record: record };
   }
 
+  // ---------------- 学ぶ(教材・復習リスト) ----------------
+
+  /** 経験値だけを足す(パラメーターとサビは動かさない)。確認問題と復習リストで使う。 */
+  function gainXp(app, xp) {
+    const before = R.levelOf(app.progress.totalXp);
+    app.progress.totalXp += xp;
+    const after = R.levelOf(app.progress.totalXp);
+    return { xp: xp, level: after, leveledUp: after > before };
+  }
+
+  /** 教材を保存する(スキルごと1件。作り直すと上書き)。 */
+  function saveMaterial(app, skillId, material, opts) {
+    const now = (opts && opts.now) || Date.now();
+    if (!app.progress.materials) app.progress.materials = {};
+    const entry = Object.assign({}, material, {
+      skillId: skillId,
+      at: now,
+      model: (opts && opts.model) || null,
+    });
+    app.progress.materials[skillId] = entry;
+    app.save();
+    return entry;
+  }
+
+  function deleteMaterial(app, skillId) {
+    if (app.progress.materials) delete app.progress.materials[skillId];
+    app.save();
+  }
+
+  /**
+   * 教材の確認問題を採点する。合否はなく、まちがいは復習リストへ。
+   * 経験値は「1日1スキル1回だけ」。2回目からは0(まちがいの保存は毎回する)。
+   */
+  function finishMaterialCheck(app, skillId, items, opts) {
+    const now = (opts && opts.now) || Date.now();
+    const score = global.Quiz.scoreTest(items);
+    const mistakes = saveMistakes(app, score, now);
+
+    const todayKey = U.dateKey(now);
+    const key = R.dailyKey('check', skillId);
+    const already = R.dailyDone(app.progress.daily, key, todayKey);
+
+    let gain = { xp: 0, level: R.levelOf(app.progress.totalXp), leveledUp: false };
+    if (!already) {
+      gain = gainXp(app, R.reviewXp(score.correct));
+      if (!app.progress.daily) app.progress.daily = {};
+      app.progress.daily[key] = todayKey;
+    }
+
+    pushTestLog(app, {
+      at: now, type: 'check', skillId: skillId,
+      valid: score.valid, correct: score.correct, xp: gain.xp,
+    });
+    app.save();
+    return {
+      score: score, mistakes: mistakes, earnedToday: !already,
+      xp: gain.xp, level: gain.level, leveledUp: gain.leveledUp,
+    };
+  }
+
+  /**
+   * 復習リストを解いた結果を記録する。1問正解ごとに経験値、2回連続正解で克服。
+   * 外した問題は、正解あつかいにも不正解あつかいにもしない。
+   * @param {Array<{q, given, flagged}>} items QuizUI.run が返す形
+   */
+  function finishReviewSession(app, items, opts) {
+    const now = (opts && opts.now) || Date.now();
+    const Q = global.Quiz;
+    const score = Q.scoreTest(items);
+    const list = app.progress.reviewList || (app.progress.reviewList = []);
+    const byKey = new Map(list.map(function (it) { return [it.key, it]; }));
+
+    let cleared = 0;
+    for (const r of score.results) {
+      if (r.flagged) continue;
+      const item = byKey.get(Q.reviewKey(r.q));
+      if (!item) continue;
+      const was = item.cleared;
+      Q.recordReview(item, r.correct, now);
+      if (!was && item.cleared) cleared++;
+    }
+
+    const gain = gainXp(app, R.reviewXp(score.correct));
+    pushTestLog(app, {
+      at: now, type: 'reviewList',
+      valid: score.valid, correct: score.correct, cleared: cleared, xp: gain.xp,
+    });
+    app.save();
+    return {
+      score: score, cleared: cleared,
+      xp: gain.xp, level: gain.level, leveledUp: gain.leveledUp,
+    };
+  }
+
+  /** 復習リストから1問消す */
+  function removeReviewItem(app, id) {
+    const list = app.progress.reviewList || [];
+    const idx = list.findIndex(function (it) { return it.id === id; });
+    if (idx < 0) return 0;
+    list.splice(idx, 1);
+    app.save();
+    return 1;
+  }
+
+  /** 克服した問題をまとめて消す(容量を空けるため) */
+  function removeClearedReviewItems(app) {
+    const list = app.progress.reviewList || [];
+    const before = list.length;
+    const kept = list.filter(function (it) { return !it.cleared; });
+    list.length = 0;
+    for (const it of kept) list.push(it);
+    app.save();
+    return before - list.length;
+  }
+
   /** サビ50%未満の解放済みスキル数(草原の入場条件に使う) */
   function freshSkillCount(app, now) {
     const t = now == null ? Date.now() : now;
@@ -298,5 +413,7 @@
     MAX_LOGS,
     recordLog, unlockSkill, freshSkillCount, applyPartialRecovery,
     finishUnlockTest, finishReviewTest, finishDiagnosis, saveMistakes,
+    gainXp, saveMaterial, deleteMaterial, finishMaterialCheck,
+    finishReviewSession, removeReviewItem, removeClearedReviewItems,
   };
 })(typeof window !== 'undefined' ? window : globalThis);
