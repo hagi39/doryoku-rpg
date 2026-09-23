@@ -17,6 +17,8 @@
     REVIEW_CHOICE: 2,          // 復習テスト: 選択2 + 記述1、3問中2問で合格
     REVIEW_WRITTEN: 1,
     REVIEW_PASS_RATIO: 2 / 3,
+    CHECK_CHOICE: 2,           // 教材の確認問題: 選択2 + 記述1。合否はなく、まちがいが復習リストに入る
+    CHECK_WRITTEN: 1,
     MIN_VALID: 2,              // 有効な問題がこれ未満なら判定しない(やり直し)
     DIAG_MAX: 6,               // 診断の最大出題数
     REVIEW_LIST_MAX: 300,      // 復習リストの上限
@@ -145,6 +147,19 @@
   function str(v) { return typeof v === 'string' ? v.trim() : ''; }
 
   /**
+   * 選択肢を並べ直す(AIは正解を同じ位置に置きがち。復習では答えの位置を覚えてしまうのを防ぐ)。
+   * 記述問題はそのまま返す。元の問題は書き換えない。
+   */
+  function reshuffleChoices(q) {
+    if (!q || q.type !== 'choice' || !Array.isArray(q.choices) || q.choices.length < 2) return q;
+    const order = U.sample(q.choices.map(function (_, i) { return i; }), q.choices.length);
+    return Object.assign({}, q, {
+      choices: order.map(function (i) { return q.choices[i]; }),
+      answer: order.indexOf(q.answer),
+    });
+  }
+
+  /**
    * AIが返した問題を検査し、使える形にそろえる。壊れた問題は捨てる。
    * 選択肢の並びはここで混ぜる(AIは正解を同じ位置に置きがちなため)。
    * @param {*} raw  AIの返事(配列、または {questions:[...]})
@@ -171,15 +186,14 @@
         if (choices.length < 2 || choices.length > 6 || choices.some(function (c) { return !c; })) continue;
         if (!Number.isInteger(answer) || answer < 0 || answer >= choices.length) continue;
         if (new Set(choices.map(normalize)).size !== choices.length) continue;
-        const order = U.sample(choices.map(function (_, i) { return i; }), choices.length);
-        out.push({
+        out.push(reshuffleChoices({
           type: 'choice',
           skillId: skillId,
           question: question,
-          choices: order.map(function (i) { return choices[i]; }),
-          answer: order.indexOf(answer),
+          choices: choices,
+          answer: answer,
           explanation: str(r.explanation),
-        });
+        }));
       } else if (r.type === 'written') {
         const answer = str(r.answer);
         if (!answer) continue;
@@ -212,6 +226,9 @@
 
   /** 復習テスト用に「選択2+記述1」をそろえる */
   function pickReviewSet(questions) { return pickSet(questions, C.REVIEW_CHOICE, C.REVIEW_WRITTEN); }
+
+  /** 教材の確認問題用に「選択2+記述1」をそろえる */
+  function pickCheckSet(questions) { return pickSet(questions, C.CHECK_CHOICE, C.CHECK_WRITTEN); }
 
   // ---------------- 採点と合否 ----------------
 
@@ -403,6 +420,29 @@
     }
   }
 
+  /**
+   * 復習で出す問題を選ぶ。克服済みは出さない。
+   * 最後に解いた日が古い順、同じならまちがいが多い順(いちばん忘れていそうなものから)。
+   * @param {Array} list progress.reviewList
+   * @param {{max?:number, skillId?:string}} opts skillId を渡すとそのスキルだけに絞る
+   * @returns {Array} 復習リストの項目そのもの(そのまま recordReview に渡せる)
+   */
+  function pickReviewSession(list, opts) {
+    const o = opts || {};
+    const max = o.max == null ? C.REVIEW_SESSION_MAX : o.max;
+    return (list || [])
+      .filter(function (it) {
+        if (!it || !it.q || it.cleared) return false;
+        return !o.skillId || it.skillId === o.skillId;
+      })
+      .sort(function (a, b) {
+        return (a.lastAt || 0) - (b.lastAt || 0) ||
+          (b.misses || 0) - (a.misses || 0) ||
+          (a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
+      })
+      .slice(0, max);
+  }
+
   /** 復習で1問答えた結果を記録する。2回連続で正解したら克服。 */
   function recordReview(item, correct, now) {
     const t = now == null ? Date.now() : now;
@@ -424,9 +464,9 @@
   global.Quiz = {
     C: C,
     normalize, parseNumber, gradeWritten, gradeAnswer,
-    sanitizeQuestions, pickSet, pickUnlockSet, pickReviewSet,
+    sanitizeQuestions, reshuffleChoices, pickSet, pickUnlockSet, pickReviewSet, pickCheckSet,
     scoreTest, passLine, judge,
     ancestorsOf, depthMap, diagnosisTargets, diagnosisOutcome,
-    addMistake, recordReview, reviewKey,
+    addMistake, recordReview, reviewKey, pickReviewSession,
   };
 })(typeof window !== 'undefined' ? window : globalThis);

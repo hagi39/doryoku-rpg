@@ -263,9 +263,15 @@
   }
 
   function buildActions(app, skill, state) {
+    const material = state.needsTest ? {
+      label: '教材を見る',
+      onClick: function () { app.pendingLearnSkill = skill.id; app.go('learn'); },
+    } : null;
+
     if (state.unlocked) {
       return [
         { label: 'とじる', kind: 'ghost' },
+        material,
         state.needsTest ? {
           label: '復習テスト',
           onClick: function () { global.Tests.review(app, skill); return false; },
@@ -285,6 +291,8 @@
       return [{ label: 'とじる', kind: 'ghost' }];
     }
 
+    // 解放できるスキルは、教材を読んでから解放テストに進める
+
     const selfReport = {
       label: state.needsTest ? '自己申告で解放' : 'できた!',
       kind: state.needsTest ? null : 'primary',
@@ -297,6 +305,7 @@
 
     return [
       selfReport,
+      material,
       {
         label: '解放テスト',
         kind: 'primary',
