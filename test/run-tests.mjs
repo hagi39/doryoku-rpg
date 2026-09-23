@@ -25,11 +25,12 @@ for (const rel of [
   'js/core/quiz.js',
   'js/api/claude.js',
   'js/api/quiz-gen.js',
+  'js/api/material-gen.js',
 ]) {
   (0, eval)(readFileSync(join(SRC, rel), 'utf8'));
 }
 
-const { U, TreeData, Validate, Rules, Store, Actions, Layout, Quiz, Ai, QuizGen } = globalThis;
+const { U, TreeData, Validate, Rules, Store, Actions, Layout, Quiz, Ai, QuizGen, MaterialGen } = globalThis;
 
 let pass = 0;
 const failures = [];
@@ -898,6 +899,98 @@ test('通し: 診断(出題先を選ぶ → 1スキル1問 → 前提ごと解�
       results: res.record.results.map((r) => ({ skill: r.skillId, correct: r.correct })),
     });
     eq(comment, 'よくできました。次は運動量です。', '講評の飾りを外す:');
+  } finally { Ai.setMock(null); }
+});
+
+// ---------------- 教材 ----------------
+
+test('教材の検査: 壊れた項目を捨て、上限で切る', () => {
+  const skill = data.skills.find((s) => s.id === 'math_01');
+  const got = MaterialGen.sanitizeMaterial({
+    summary: '  まとめ  ',
+    points: [
+      { title: '要点1', body: '中身1' },
+      { title: '', body: '見出しなし' },
+      { title: '本文なし', body: '   ' },
+      'ただの文字列',
+      { title: '要点2', body: '中身2' },
+      { title: '要点3', body: '中身3' },
+      { title: '要点4', body: '中身4' },
+      { title: '要点5', body: '上限を超える' },
+    ],
+    examples: [{ question: '例題', solution: '解き方' }, { question: '答えなし' }],
+    pitfalls: ['つまずき1', '', '  つまずき2  '],
+  }, skill);
+
+  eq(got.skillId, 'math_01', 'スキルid:');
+  eq(got.summary, 'まとめ', '前後の空白を落とす:');
+  eq(got.points.length, MaterialGen.MAX.POINTS, '要点の上限:');
+  eq(got.points.map((p) => p.title).join(), '要点1,要点2,要点3,要点4', '壊れた要点を捨てる:');
+  eq(got.examples.length, 1, '答えのない例題は捨てる:');
+  eq(got.pitfalls.join(), 'つまずき1,つまずき2', '空のつまずきを捨てる:');
+});
+
+test('教材の検査: 長すぎる本文は切る', () => {
+  const skill = data.skills.find((s) => s.id === 'math_01');
+  const got = MaterialGen.sanitizeMaterial({
+    points: [{ title: 'あ'.repeat(100), body: 'い'.repeat(1000) }],
+  }, skill);
+  eq(got.points[0].title.length, MaterialGen.MAX.TITLE, '見出し:');
+  eq(got.points[0].body.length, MaterialGen.MAX.BODY, '本文:');
+});
+
+test('教材の検査: 要点がなければ null(作り直させる)', () => {
+  const skill = data.skills.find((s) => s.id === 'math_01');
+  eq(MaterialGen.sanitizeMaterial({ summary: 'まとめだけ', points: [] }, skill), null);
+  eq(MaterialGen.sanitizeMaterial(null, skill), null, '空の返事:');
+  eq(MaterialGen.sanitizeMaterial('ただの文字列', skill), null, '形が違う:');
+});
+
+test('通し: 教材を作って確認問題を出す', async () => {
+  const app = makeApp(U.deepClone(data));
+  const skill = app.skill('math_03');
+  const calls = [];
+  Ai.setMock(async (params) => {
+    calls.push(params.messages[0].content);
+    if (calls.length === 1) {
+      return { text: JSON.stringify({
+        summary: '一次不等式を解けるようになる',
+        points: [{ title: '不等号の向き', body: '負の数で両辺を割ると不等号の向きが変わる' }],
+        examples: [{ question: '-2x + 3 < 7', solution: '-2x < 4 より x > -2' }],
+        pitfalls: ['負の数で割ったときに不等号を変え忘れる'],
+      }) };
+    }
+    return { text: JSON.stringify({ questions: [
+      ch('math_03', 'C1'), ch('math_03', 'C2'), ch('math_03', 'C3'),
+      { type: 'written', skillId: 'math_03', question: 'W1', answer: '2' },
+      { type: 'written', skillId: 'math_03', question: 'W2', answer: '3' },
+      ch('math_01', 'よそのスキル'),
+    ] }) };
+  });
+  try {
+    const material = await MaterialGen.generate(app, skill);
+    eq(material.skillId, 'math_03', 'スキルid:');
+    eq(material.points.length, 1, '要点:');
+    ok(calls[0].includes(skill.name), 'スキル名をAIに渡す');
+    ok(calls[0].includes('因数分解'), '前提スキルをAIに渡す');
+
+    const qs = await MaterialGen.checkQuestions(app, skill, material, { avoid: ['前に出た問題'] });
+    eq(qs.length, 3, '選択2+記述1:');
+    eq(qs.filter((q) => q.type === 'choice').length, 2, '選択:');
+    ok(qs.every((q) => q.skillId === 'math_03'), 'よそのスキルの問題は捨てる');
+    ok(calls[1].includes('不等号の向き'), '教材の中身をAIに渡す');
+    ok(calls[1].includes('前に出た問題'), '前に出た問題を避けさせる');
+  } finally { Ai.setMock(null); }
+});
+
+test('通し: 教材がそろわなければエラーにする', async () => {
+  const app = makeApp(U.deepClone(data));
+  Ai.setMock(async () => ({ text: JSON.stringify({ summary: '要点なし' }) }));
+  try {
+    await MaterialGen.generate(app, app.skill('math_03'));
+    ok(false, 'エラーにならなかった');
+  } catch (e) {
+    eq(e.kind, 'bad-response', 'エラーの種類:');
   } finally { Ai.setMock(null); }
 });
 

@@ -32,6 +32,7 @@ const JS_FILES = [
   'js/core/quiz.js',
   'js/api/claude.js',
   'js/api/quiz-gen.js',
+  'js/api/material-gen.js',
   'js/ui/shell.js',
   'js/ui/quiz-ui.js',
   'js/ui/tests.js',
