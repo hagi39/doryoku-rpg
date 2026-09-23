@@ -645,6 +645,73 @@ test('復習リスト: 300問を超えたら克服済みの古いものから捨
   ok(!list.some((it) => it.q.question === 'q0'), '次はいちばん古いものが消える');
 });
 
+test('復習リスト: 出題は克服済みを外し、古い順 → まちがいが多い順', () => {
+  const list = [];
+  const add = (id, at) => Quiz.addMistake(list, { type: 'written', skillId: id, question: 'q' + id, answer: '1' }, at);
+  add('math_01', 300);
+  add('math_02', 100);
+  add('math_03', 100);
+  add('eng_01', 200);
+  list.find((it) => it.skillId === 'math_02').misses = 5; // 同じ日ならまちがいが多いほうが先
+  list.find((it) => it.skillId === 'eng_01').cleared = true;
+
+  const picked = Quiz.pickReviewSession(list);
+  eq(picked.map((it) => it.skillId).join(), 'math_02,math_03,math_01', '出題順:');
+  ok(!picked.some((it) => it.cleared), '克服済みは出さない');
+  eq(Quiz.pickReviewSession(list, { max: 2 }).length, 2, '上限:');
+  eq(Quiz.pickReviewSession(list, { skillId: 'math_01' }).length, 1, 'スキルで絞る:');
+  eq(Quiz.pickReviewSession([]).length, 0, '空のとき:');
+});
+
+test('復習リスト: 出題は最大10問', () => {
+  const list = [];
+  for (let i = 0; i < 25; i++) Quiz.addMistake(list, { skillId: 's', question: 'q' + i }, i);
+  eq(Quiz.pickReviewSession(list).length, Quiz.C.REVIEW_SESSION_MAX);
+});
+
+test('復習の出題: 選択肢を並べ直しても正解はずれない', () => {
+  const qs = Quiz.sanitizeQuestions(rawQs);
+  const q = qs[0];
+  const snapshot = { choices: q.choices.join(), answer: q.answer };
+  U.setRandom(() => 0.7);
+  const shuffled = Quiz.reshuffleChoices(q);
+  U.setRandom(null);
+  eq(shuffled.choices[shuffled.answer], q.choices[q.answer], '正解の選択肢:');
+  eq(shuffled.choices.slice().sort().join(), q.choices.slice().sort().join(), '選択肢の中身:');
+  ok(shuffled.choices.join() !== snapshot.choices, '並びが変わる');
+  eq(q.choices.join(), snapshot.choices, '元の問題は書き換えない:');
+  eq(q.answer, snapshot.answer, '元の正解番号:');
+  const w = qs[3];
+  eq(Quiz.reshuffleChoices(w), w, '記述問題はそのまま:');
+});
+
+test('確認問題: 選択2+記述1をそろえる', () => {
+  const qs = Quiz.sanitizeQuestions(rawQs);
+  const set = Quiz.pickCheckSet(qs);
+  eq(set.length, 3, '問題数:');
+  eq(set.filter((q) => q.type === 'choice').length, 2, '選択:');
+  eq(set.filter((q) => q.type === 'written').length, 1, '記述:');
+  eq(Quiz.pickCheckSet(qs.filter((q) => q.type === 'choice')), null, '記述がないとそろわない');
+});
+
+test('1日1回だけ: 同じ日は2回目から経験値なし、日付が変わると戻る', () => {
+  const daily = {};
+  const key = Rules.dailyKey('check', 'math_01');
+  eq(key, 'check:math_01', 'キー:');
+  ok(!Rules.dailyDone(daily, key, '2026-01-05'), 'まだ取っていない');
+  daily[key] = '2026-01-05';
+  ok(Rules.dailyDone(daily, key, '2026-01-05'), '同じ日は取得済み');
+  ok(!Rules.dailyDone(daily, key, '2026-01-06'), '次の日はまた取れる');
+  ok(!Rules.dailyDone(daily, Rules.dailyKey('check', 'math_02'), '2026-01-05'), '別のスキルは別あつかい');
+  ok(!Rules.dailyDone(null, key, '2026-01-05'), '台帳がなくても落ちない');
+});
+
+test('復習の経験値: 1問正解につき4xp', () => {
+  eq(Rules.reviewXp(0), 0);
+  eq(Rules.reviewXp(3), 12);
+  eq(Rules.reviewXp(-1), 0, 'マイナスは0:');
+});
+
 test('解放テスト: 合格で解放、まちがいは復習リストへ、外した問題は入れない', () => {
   const app = makeApp(U.deepClone(data));
   const qs = Quiz.sanitizeQuestions(rawQs);

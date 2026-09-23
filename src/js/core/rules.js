@@ -193,11 +193,32 @@
     return { count: count, lastDate: todayKey, changed: true };
   }
 
+  // ---------------- 1日1回だけ ----------------
+
+  /**
+   * 「1日1スキル1回だけ経験値」の台帳キー。
+   * progress.daily に key → 最後に経験値を取った日付(YYYY-MM-DD)で入れる。
+   */
+  function dailyKey(kind, id) {
+    return kind + ':' + id;
+  }
+
+  /** その key の経験値を、その日もう取っているか */
+  function dailyDone(daily, key, todayKey) {
+    return !!(daily && daily[key] === todayKey);
+  }
+
+  /** 復習・確認問題の経験値。1問正解につき REVIEW_XP。 */
+  function reviewXp(correctCount) {
+    return Math.max(0, correctCount) * C.REVIEW_XP;
+  }
+
   global.Rules = {
     C: C,
     levelOf, xpForLevel, levelProgress,
     safeDays, fullDays, rustOf, polishedAtForRust, partialPolish,
     logXp, statGains, isUnlockable, grassCheck, updateStreak,
+    dailyKey, dailyDone, reviewXp,
   };
 
   if (typeof module !== 'undefined' && module.exports) module.exports = global.Rules;
