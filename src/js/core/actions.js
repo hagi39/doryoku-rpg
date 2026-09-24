@@ -401,6 +401,63 @@
     return before - list.length;
   }
 
+  // ---------------- 冒険 ----------------
+
+  /** スライムを倒した。ひよこが仲間になり、経験値が入る(2回目からは経験値なし)。 */
+  function winGrass(app, opts) {
+    const now = (opts && opts.now) || Date.now();
+    if (!app.progress.companions) app.progress.companions = { chick: false };
+    const first = !app.progress.companions.chick;
+    app.progress.companions.chick = true;
+    const gain = first
+      ? gainXp(app, R.C.GRASS_CLEAR_XP)
+      : { xp: 0, level: R.levelOf(app.progress.totalXp), leveledUp: false };
+    if (first) pushTestLog(app, { at: now, type: 'grass', xp: gain.xp });
+    app.save();
+    return { first: first, xp: gain.xp, level: gain.level, leveledUp: gain.leveledUp };
+  }
+
+  function geoState(app) {
+    if (!app.progress.geo) app.progress.geo = { countries: {}, areasCleared: [] };
+    if (!app.progress.geo.countries) app.progress.geo.countries = {};
+    if (!Array.isArray(app.progress.geo.areasCleared)) app.progress.geo.areasCleared = [];
+    return app.progress.geo;
+  }
+
+  /**
+   * 世界地図の出題結果を記録する。経験値だけ入れ、パラメーターとサビは動かさない
+   * (確認問題・復習リストと同じ扱い)。エリアクリアでボーナス経験値。
+   * @param {Array<{countryId:string, type:string, correct:boolean}>} results
+   */
+  function finishGeoQuiz(app, results, opts) {
+    const now = (opts && opts.now) || Date.now();
+    const Geo = global.Geo;
+    const geo = geoState(app);
+
+    let correct = 0;
+    for (const r of results) {
+      Geo.applyAnswer(geo, r.countryId, r.type, r.correct);
+      if (r.correct) correct++;
+    }
+
+    const cleared = Geo.newlyCleared(geo, global.GeoData.countries, global.GeoData.AREAS);
+    for (const id of cleared) geo.areasCleared.push(id);
+
+    const xp = R.reviewXp(correct) + cleared.length * R.C.AREA_CLEAR_XP;
+    const gain = gainXp(app, xp);
+
+    pushTestLog(app, {
+      at: now, type: 'geo',
+      valid: results.length, correct: correct,
+      cleared: cleared.slice(), xp: gain.xp,
+    });
+    app.save();
+    return {
+      total: results.length, correct: correct, cleared: cleared,
+      xp: gain.xp, level: gain.level, leveledUp: gain.leveledUp,
+    };
+  }
+
   /** サビ50%未満の解放済みスキル数(草原の入場条件に使う) */
   function freshSkillCount(app, now) {
     const t = now == null ? Date.now() : now;
@@ -414,6 +471,7 @@
     recordLog, unlockSkill, freshSkillCount, applyPartialRecovery,
     finishUnlockTest, finishReviewTest, finishDiagnosis, saveMistakes,
     gainXp, saveMaterial, deleteMaterial, finishMaterialCheck,
+    winGrass, finishGeoQuiz, geoState,
     finishReviewSession, removeReviewItem, removeClearedReviewItems,
   };
 })(typeof window !== 'undefined' ? window : globalThis);

@@ -20,17 +20,20 @@ const CSS_FILES = [
   'css/tree.css',
   'css/quiz.css',
   'css/learn.css',
+  'css/quest.css',
 ];
 
 const JS_FILES = [
   'js/core/util.js',
   'js/data/tree-data.js',
+  'js/data/geo-data.js',
   'js/core/validate.js',
   'js/core/layout.js',
   'js/core/rules.js',
   'js/core/store.js',
   'js/core/actions.js',
   'js/core/quiz.js',
+  'js/core/geo.js',
   'js/api/claude.js',
   'js/api/quiz-gen.js',
   'js/api/material-gen.js',

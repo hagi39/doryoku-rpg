@@ -17,12 +17,14 @@ globalThis.Blob = class { constructor(parts) { this.size = Buffer.byteLength(par
 for (const rel of [
   'js/core/util.js',
   'js/data/tree-data.js',
+  'js/data/geo-data.js',
   'js/core/validate.js',
   'js/core/layout.js',
   'js/core/rules.js',
   'js/core/store.js',
   'js/core/actions.js',
   'js/core/quiz.js',
+  'js/core/geo.js',
   'js/api/claude.js',
   'js/api/quiz-gen.js',
   'js/api/material-gen.js',
@@ -30,7 +32,8 @@ for (const rel of [
   (0, eval)(readFileSync(join(SRC, rel), 'utf8'));
 }
 
-const { U, TreeData, Validate, Rules, Store, Actions, Layout, Quiz, Ai, QuizGen, MaterialGen } = globalThis;
+const { U, TreeData, Validate, Rules, Store, Actions, Layout, Quiz, Ai, QuizGen, MaterialGen,
+        GeoData, Geo } = globalThis;
 
 let pass = 0;
 const failures = [];
@@ -1117,6 +1120,178 @@ test('通し: 教材がそろわなければエラーにする', async () => {
   } catch (e) {
     eq(e.kind, 'bad-response', 'エラーの種類:');
   } finally { Ai.setMock(null); }
+});
+
+
+// ---------------- 世界地図(P6) ----------------
+
+test('62か国、エリアごとの数が設計書どおり', () => {
+  eq(GeoData.countries.length, 62, '国数:');
+  const want = { asia: 20, europe: 16, africa: 11, namerica: 5, samerica: 7, oceania: 3 };
+  const got = {};
+  for (const c of GeoData.countries) got[c.area] = (got[c.area] || 0) + 1;
+  for (const k of Object.keys(want)) eq(got[k], want[k], `エリア ${k}:`);
+  for (const a of GeoData.AREAS) eq(a.count, want[a.id], `AREAS の ${a.id}:`);
+});
+
+test('国のidに重複がなく、★は1〜3', () => {
+  const ids = new Set();
+  for (const c of GeoData.countries) {
+    ok(!ids.has(c.id), `idが重複: ${c.id}`);
+    ids.add(c.id);
+    ok(c.freq >= 1 && c.freq <= 3, `${c.name} の★:`);
+    ok(!!c.exports && !!c.feature, `${c.name} の輸出品・特徴が空`);
+  }
+});
+
+test('首都があいまいな5か国では首都の問題を出さない', () => {
+  const excluded = GeoData.ALL_CAPITALS_EXCLUDED;
+  eq(excluded.length, 5, '対象国数:');
+  for (const c of GeoData.countries) {
+    const types = Geo.typesFor(c).map((t) => t.id);
+    if (excluded.includes(c.id)) {
+      eq(c.capital, null, `${c.name} の首都:`);
+      ok(!types.includes('capital'), `${c.name} に首都の問題が出る`);
+      ok(!types.includes('capitalRev'), `${c.name} に首都あての問題が出る`);
+    } else {
+      ok(!!c.capital, `${c.name} の首都がない`);
+      ok(types.includes('capital'), `${c.name} に首都の問題が出ない`);
+    }
+  }
+});
+
+test('出題: 選択肢は4つで重複なし、正解が必ず入る', () => {
+  let seed = 12345;
+  const rand = () => { seed = (seed * 1103515245 + 12345) % 2147483648; return seed / 2147483648; };
+  for (let i = 0; i < 300; i++) {
+    const q = Geo.buildQuiz({ pool: GeoData.countries, geo: { countries: {} }, mode: 'freq', count: 1, rand })[0];
+    eq(q.choices.length, 4, '選択肢の数:');
+    eq(new Set(q.choices).size, 4, '選択肢の重複:');
+    ok(q.answer >= 0 && q.answer < 4, '正解の位置:');
+    ok(!!q.question && !!q.explanation, '問題文か解説が空');
+  }
+});
+
+test('出題: エリアを絞ると、そのエリアの国だけが出る', () => {
+  const pool = GeoData.countries.filter((c) => c.area === 'samerica');
+  const qs = Geo.buildQuiz({
+    pool: GeoData.countries, targets: pool, geo: { countries: {} },
+    mode: 'freq', count: 5, rand: () => 0.5,
+  });
+  const ids = new Set(pool.map((c) => c.id));
+  for (const q of qs) ok(ids.has(q.countryId), `よそのエリアが出た: ${q.countryId}`);
+  eq(new Set(qs.map((q) => q.countryId)).size, qs.length, '同じ国が重複:');
+});
+
+test('印の色: 未挑戦→練習中→定着、まちがえると苦手', () => {
+  const geo = { countries: {}, areasCleared: [] };
+  eq(Geo.markState(Geo.peek(geo, 'jp')), 'new', '未挑戦:');
+  Geo.applyAnswer(geo, 'jp', 'pos', true);
+  eq(Geo.markState(Geo.peek(geo, 'jp')), 'practice', '1回正解:');
+  Geo.applyAnswer(geo, 'jp', 'pos', true);
+  Geo.applyAnswer(geo, 'jp', 'pos', true);
+  eq(Geo.markState(Geo.peek(geo, 'jp')), 'fixed', '3回連続正解:');
+  Geo.applyAnswer(geo, 'jp', 'capital', false);
+  eq(Geo.markState(Geo.peek(geo, 'jp')), 'weak', 'まちがえた:');
+  eq(Geo.peek(geo, 'jp').streak, 0, '連続正解が戻る:');
+  eq(Geo.peek(geo, 'jp').byType.capital, 1, 'タイプ別のまちがい:');
+});
+
+test('苦手優先だと、まちがえた国の重みが上がる', () => {
+  const geo = { countries: {}, areasCleared: [] };
+  const jp = GeoData.countries.find((c) => c.id === 'jp');
+  const np = GeoData.countries.find((c) => c.id === 'np');
+  Geo.applyAnswer(geo, 'np', 'pos', false);
+  Geo.applyAnswer(geo, 'np', 'pos', false);
+  ok(Geo.weightOf(np, geo, 'weak') > Geo.weightOf(jp, geo, 'weak'), '苦手優先:');
+  ok(Geo.weightOf(jp, geo, 'freq') > Geo.weightOf(np, geo, 'freq'), '頻出優先:');
+});
+
+test('エリアクリア: ★2以上すべてで2回連続正解', () => {
+  const geo = { countries: {}, areasCleared: [] };
+  const targets = Geo.areaTargets(GeoData.countries, 'oceania');
+  eq(targets.length, 2, 'オセアニアの★2以上:');
+  ok(!Geo.areaProgress(geo, GeoData.countries, 'oceania').cleared, '最初はクリアしていない');
+  for (const c of targets) Geo.applyAnswer(geo, c.id, 'pos', true);
+  ok(!Geo.areaProgress(geo, GeoData.countries, 'oceania').cleared, '1回だけではクリアしない');
+  for (const c of targets) Geo.applyAnswer(geo, c.id, 'pos', true);
+  ok(Geo.areaProgress(geo, GeoData.countries, 'oceania').cleared, '2回連続でクリア');
+  eq(Geo.newlyCleared(geo, GeoData.countries, GeoData.AREAS)[0], 'oceania', 'クリアしたエリア:');
+  geo.areasCleared.push('oceania');
+  eq(Geo.newlyCleared(geo, GeoData.countries, GeoData.AREAS).length, 0, '2回目はボーナスなし');
+});
+
+test('投影: 経度1度と緯度1度が同じ長さになる(形がゆがまない)', () => {
+  const tr = Geo.fitTransform({ lon: [-20, 52], lat: [-36, 38] }, 640, 330);
+  const a = Geo.project(tr, 0, 0);
+  const b = Geo.project(tr, 10, 0);
+  const c = Geo.project(tr, 0, 10);
+  near(b.x - a.x, a.y - c.y, 0.001, '経度と緯度の縮尺:');
+  const all = Geo.fitTransform(Geo.WORLD_VIEW, 640, 330);
+  for (const country of GeoData.countries) {
+    const p = Geo.project(all, country.lon, country.lat);
+    ok(p.x >= -1 && p.x <= 641, `${country.name} が地図の外(x=${Math.round(p.x)})`);
+    ok(p.y >= -1 && p.y <= 331, `${country.name} が地図の外(y=${Math.round(p.y)})`);
+  }
+});
+
+test('地図: 62か国すべての印が、どれかの陸地の上にある', () => {
+  // 位置の問題で印が海に出ないことを保証する(輪郭を直すと崩れやすいので固定する)
+  const inside = (pt, poly) => {
+    let c = false;
+    for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+      const [xi, yi] = poly[i];
+      const [xj, yj] = poly[j];
+      if ((yi > pt[1]) !== (yj > pt[1]) &&
+          pt[0] < ((xj - xi) * (pt[1] - yi)) / (yj - yi) + xi) c = !c;
+    }
+    return c;
+  };
+  const off = GeoData.countries.filter(
+    (c) => !GeoData.OUTLINES.some((o) => inside([c.lon, c.lat], o.points))
+  );
+  eq(off.map((c) => c.name).join(', '), '', '海に出ている印:');
+});
+
+test('記録: 正解で経験値、エリアクリアでボーナス', () => {
+  const app = makeApp(U.deepClone(data));
+  const targets = Geo.areaTargets(GeoData.countries, 'oceania');
+  const geo = Actions.geoState(app);
+  for (const c of targets) Geo.applyAnswer(geo, c.id, 'pos', true);
+
+  const res = Actions.finishGeoQuiz(app, targets.map((c) => ({
+    countryId: c.id, type: 'pos', correct: true,
+  })));
+  eq(res.correct, 2, '正解数:');
+  eq(res.cleared[0], 'oceania', 'クリアしたエリア:');
+  eq(res.xp, Rules.reviewXp(2) + Rules.C.AREA_CLEAR_XP, '経験値:');
+  eq(app.progress.geo.areasCleared.length, 1, 'クリア記録:');
+  eq(app.progress.stats.int, 0, 'パラメーターは動かさない');
+
+  // 2回目はボーナスが出ない
+  const again = Actions.finishGeoQuiz(app, [{ countryId: 'au', type: 'pos', correct: true }]);
+  eq(again.cleared.length, 0, '2回目のボーナス:');
+  eq(again.xp, Rules.reviewXp(1), '2回目の経験値:');
+});
+
+test('草原: 倒すとひよこが仲間になり、経験値は初回だけ', () => {
+  const app = makeApp(U.deepClone(data));
+  eq(app.hasChick(), false, '最初はひよこなし');
+  const first = Actions.winGrass(app);
+  eq(first.first, true, '初回:');
+  eq(first.xp, Rules.C.GRASS_CLEAR_XP, '初回の経験値:');
+  eq(app.progress.companions.chick, true, 'ひよこ:');
+  const second = Actions.winGrass(app);
+  eq(second.first, false, '2回目:');
+  eq(second.xp, 0, '2回目の経験値:');
+});
+
+test('草原の入場条件: 足りないものが並ぶ', () => {
+  const none = Rules.grassCheck({ stats: { int: 0, str: 0, sta: 0 }, freshCount: 0 });
+  eq(none.ok, false, '条件なし:');
+  eq(none.missing.length, 4, '足りないもの(知力・筋力・体力・スキル数):');
+  const okCheck = Rules.grassCheck({ stats: { int: 6, str: 4, sta: 2 }, freshCount: 8 });
+  eq(okCheck.ok, true, 'ちょうど条件を満たす:');
 });
 
 for (const [name, fn] of asyncTests) {
