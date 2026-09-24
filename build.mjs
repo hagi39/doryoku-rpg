@@ -80,9 +80,12 @@ async function build() {
   await mkdir(DIST, { recursive: true });
   const outPath = join(DIST, OUT_NAME);
   await writeFile(outPath, html, 'utf8');
+  // GitHub Pages 用。中身は同じで、URLの末尾にファイル名を付けずに開けるようにする
+  await writeFile(join(DIST, 'index.html'), html, 'utf8');
 
   const kb = (Buffer.byteLength(html, 'utf8') / 1024).toFixed(1);
   console.log(`✔ ${outPath}  (${kb} KB)`);
+  console.log(`✔ ${join(DIST, 'index.html')}  (同じ中身。GitHub Pages のトップ用)`);
 }
 
 build().catch((err) => {

@@ -1,4 +1,7 @@
+# src/ からビルドして、単一HTMLを GitHub Pages に公開する。
+# dist/ はリポジトリに入れない(.gitignore のまま)。main に push すると自動で更新される。
 name: Deploy to GitHub Pages
+
 on:
   push:
     branches: [main]
@@ -9,25 +12,32 @@ permissions:
   pages: write
   id-token: write
 
+# 公開は1度に1つだけ。走っている途中のものは中断しない。
 concurrency:
   group: pages
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      # ビルドの前に、テストと成果物チェックを通す(壊れたものを公開しない)
+      - run: npm run check
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
   deploy:
+    needs: build
     runs-on: ubuntu-latest
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-      - run: npm run check
-      - run: cp "dist/努力RPG.html" dist/index.html
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: dist
       - id: deployment
         uses: actions/deploy-pages@v4
