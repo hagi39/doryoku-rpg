@@ -26,6 +26,15 @@
     REVIEW_XP: 4,           // 復習1問正解あたりの経験値
     AREA_CLEAR_XP: 100,     // 世界地図のエリアクリア
     GRASS_CLEAR_XP: 60,     // 草原でスライムを倒したとき
+    // 草原の戦い。スライムのHPを攻撃力に合わせて決めるので、
+    // パラメーターがいくら上がっても6〜8回くらいの戦いになる。
+    GRASS_ATK_BASE: 3,      // 攻撃力 = (知力+筋力+体力)÷3 + 3
+    GRASS_SLIME_BASE: 20,   // スライムのHP = 20 + 攻撃力×6
+    GRASS_SLIME_PER: 6,
+    GRASS_HP_BASE: 24,      // 自分のHP = 24 + 筋力×3
+    GRASS_HP_PER: 3,
+    GRASS_BACK_MIN: 1,      // スライムの反撃は 1〜4
+    GRASS_BACK_SPREAD: 4,
   };
 
   // ---------------- レベル ----------------
@@ -177,6 +186,36 @@
     return { ok: missing.length === 0, missing: missing };
   }
 
+  /**
+   * 草原の戦いの初期値。
+   * スライムのHPを固定にすると、パラメーターが上がるほど1〜2回で終わってしまい
+   * 戦いにならない(実機で「連打する前に終わる」と指摘された)。
+   * 攻撃力に合わせてHPを決めることで、強くなってもターン数が保たれる。
+   */
+  function battleSetup(stats) {
+    const s = stats || {};
+    const atk = Math.floor(((s.int || 0) + (s.str || 0) + (s.sta || 0)) / 3) + C.GRASS_ATK_BASE;
+    return {
+      atk: atk,
+      slimeMax: C.GRASS_SLIME_BASE + atk * C.GRASS_SLIME_PER,
+      playerMax: C.GRASS_HP_BASE + Math.floor(s.str || 0) * C.GRASS_HP_PER,
+    };
+  }
+
+  /** こちらの一撃。12%で会心(2倍)。 */
+  function battleHit(atk, rand) {
+    const r = rand || Math.random;
+    const crit = r() < C.CRIT_RATE;
+    const dmg = Math.max(1, Math.round(atk * (0.8 + r() * 0.4)) * (crit ? C.CRIT_MULT : 1));
+    return { dmg: dmg, crit: crit };
+  }
+
+  /** スライムの反撃 */
+  function slimeHit(rand) {
+    const r = rand || Math.random;
+    return C.GRASS_BACK_MIN + Math.floor(r() * C.GRASS_BACK_SPREAD);
+  }
+
   // ---------------- 連続日数 ----------------
 
   /**
@@ -219,6 +258,7 @@
     levelOf, xpForLevel, levelProgress,
     safeDays, fullDays, rustOf, polishedAtForRust, partialPolish,
     logXp, statGains, isUnlockable, grassCheck, updateStreak,
+    battleSetup, battleHit, slimeHit,
     dailyKey, dailyDone, reviewXp,
   };
 

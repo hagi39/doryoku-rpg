@@ -1317,6 +1317,146 @@ test('記録: 正解で経験値、エリアクリアでボーナス', () => {
   eq(again.xp, Rules.reviewXp(1), '2回目の経験値:');
 });
 
+test('草原の戦い: パラメーターが上がっても、ターン数が一定の幅に収まる', () => {
+  // 実機で「連打する前に終わる」と指摘された。スライムのHPが固定だと
+  // 攻撃力だけ伸びて1〜2回で終わるので、HPを攻撃力に合わせて決めている。
+  const cases = [
+    { int: 6, str: 4, sta: 2 },      // 入場条件ぴったり
+    { int: 15, str: 10, sta: 8 },    // そこそこ進めた
+    { int: 40, str: 30, sta: 25 },   // やりこみ
+    { int: 120, str: 90, sta: 80 },  // 極端に伸ばした場合
+  ];
+  let seed = 20260924;
+  const rand = () => { seed = (seed * 1103515245 + 12345) % 2147483648; return seed / 2147483648; };
+
+  for (const stats of cases) {
+    const label = `知${stats.int}/筋${stats.str}/体${stats.sta}`;
+    let minTurns = Infinity;
+    let maxTurns = 0;
+    let lost = 0;
+    const trials = 300;
+    for (let t = 0; t < trials; t++) {
+      const setup = Rules.battleSetup(stats);
+      let slime = setup.slimeMax;
+      let hp = setup.playerMax;
+      let turns = 0;
+      for (;;) {
+        turns++;
+        slime -= Rules.battleHit(setup.atk, rand).dmg;
+        if (slime <= 0) break;
+        hp -= Rules.slimeHit(rand);
+        if (hp <= 0) { lost++; break; }
+        ok(turns < 100, `${label}: 終わらない`);
+      }
+      if (turns < minTurns) minTurns = turns;
+      if (turns > maxTurns) maxTurns = turns;
+    }
+    ok(minTurns >= 2, `${label}: 1回で終わってしまう(最小 ${minTurns} ターン)`);
+    ok(minTurns >= 3, `${label}: 短すぎる(最小 ${minTurns} ターン)`);
+    ok(maxTurns <= 14, `${label}: 長すぎる(最大 ${maxTurns} ターン)`);
+    eq(lost, 0, `${label}: 初クリアで負けると不快なので、負けない想定`);
+  }
+});
+
+test('草原の戦い: 会心が出ても一撃では倒せない', () => {
+  for (const stats of [{ int: 6, str: 4, sta: 2 }, { int: 200, str: 150, sta: 120 }]) {
+    const setup = Rules.battleSetup(stats);
+    // 一撃の最大 = 攻撃力 × 1.2 を四捨五入 × 会心2倍
+    const maxHit = Math.round(setup.atk * 1.2) * Rules.C.CRIT_MULT;
+    ok(maxHit < setup.slimeMax,
+      `一撃(${maxHit})でスライム(${setup.slimeMax})が倒せてしまう`);
+  }
+});
+
+test('地図: タップした場所にいちばん近い国を選ぶ', () => {
+  const tr = Geo.fitTransform(Geo.WORLD_VIEW, 640, 330);
+  const jp = GeoData.countries.find((c) => c.id === 'jp');
+  const p = Geo.project(tr, jp.lon, jp.lat);
+
+  // 印のど真ん中
+  eq(Geo.nearestCountry(tr, GeoData.countries, p.x, p.y).id, 'jp', '印の上:');
+  // 少しずれても拾う(指で押したときのずれ)
+  eq(Geo.nearestCountry(tr, GeoData.countries, p.x + 6, p.y + 6).id, 'jp', '少しずれた:');
+  // 太平洋のまんなかは、どの国も選ばない
+  const sea = Geo.project(tr, -150, 0);
+  eq(Geo.nearestCountry(tr, GeoData.countries, sea.x, sea.y), null, '海のまんなか:');
+
+  // 密集するヨーロッパでも、いちばん近い国が返る
+  const europe = GeoData.countries.filter((c) => c.area === 'europe');
+  for (const c of europe) {
+    const q = Geo.project(tr, c.lon, c.lat);
+    const hit = Geo.nearestCountry(tr, GeoData.countries, q.x, q.y);
+    eq(hit && hit.id, c.id, `${c.name} の印の上をタップ:`);
+  }
+});
+
+test('地図: 密集した場所では、近くの国を候補として返す', () => {
+  const world = Geo.fitTransform(Geo.WORLD_VIEW, 640, 330);
+  const de = GeoData.countries.find((c) => c.id === 'de');
+  const p = Geo.project(world, de.lon, de.lat);
+
+  // 世界全体だとヨーロッパは密集するので、候補が複数出る
+  const many = Geo.countriesNear(world, GeoData.countries, p.x, p.y);
+  ok(many.length > 1, `世界全体でドイツ付近の候補が ${many.length} 件しかない`);
+  eq(many[0].id, 'de', 'いちばん近いのはドイツ:');
+  ok(many.length <= Geo.C.TAP_MAX_CANDIDATES, `候補が多すぎる: ${many.length} 件`);
+
+  // エリア表示(ヨーロッパ)に切り替えると、指で狙い分けられる間隔になる
+  const euView = GeoData.AREAS.find((a) => a.id === 'europe').view;
+  const eu = Geo.fitTransform(euView, 640, 330);
+  const scale = 343 / 640;  // スマホでの実寸倍率
+  const dePos = Geo.project(eu, de.lon, de.lat);
+  const pl = GeoData.countries.find((c) => c.id === 'pl');
+  const plPos = Geo.project(eu, pl.lon, pl.lat);
+  const px = Math.hypot(dePos.x - plPos.x, dePos.y - plPos.y) * scale;
+  ok(px >= 25, `エリア表示でもドイツとポーランドが近すぎる: 実寸 ${px.toFixed(0)}px`);
+
+  // 海のまんなかでは候補なし
+  const sea = Geo.project(world, -150, 0);
+  eq(Geo.countriesNear(world, GeoData.countries, sea.x, sea.y).length, 0, '海のまんなか:');
+});
+
+test('地図: エリアを拡大すれば直接開き、世界全体では選ばせる', () => {
+  const de = GeoData.countries.find((c) => c.id === 'de');
+
+  // 世界全体でドイツの印を正確に押しても、まわりの国が同じくらい近いので選ばせる
+  const world = Geo.fitTransform(Geo.WORLD_VIEW, 640, 330);
+  const wp = Geo.project(world, de.lon, de.lat);
+  const wHit = Geo.resolveTap(world, GeoData.countries, wp.x, wp.y);
+  ok(wHit && wHit.candidates, '世界全体では候補を出す');
+  eq(wHit.candidates[0].id, 'de', 'いちばん近いのはドイツ:');
+
+  // ヨーロッパを拡大すれば、同じ場所を押して直接ドイツが開く
+  const eu = Geo.fitTransform(GeoData.AREAS.find((a) => a.id === 'europe').view, 640, 330);
+  const ep = Geo.project(eu, de.lon, de.lat);
+  const eHit = Geo.resolveTap(eu, GeoData.countries, ep.x, ep.y);
+  ok(eHit && eHit.country, 'エリア表示では直接開く');
+  eq(eHit.country.id, 'de', '開くのはドイツ:');
+
+  // 拡大しても、国と国のちょうど中間なら選ばせる
+  const pl = GeoData.countries.find((c) => c.id === 'pl');
+  const pp = Geo.project(eu, pl.lon, pl.lat);
+  const mid = Geo.resolveTap(eu, GeoData.countries, (ep.x + pp.x) / 2, (ep.y + pp.y) / 2);
+  ok(mid && mid.candidates, '中間を押したら選ばせる');
+
+  // 海のまんなかは何も返さない
+  eq(Geo.resolveTap(world, GeoData.countries, Geo.project(world, -150, 0).x,
+                    Geo.project(world, -150, 0).y), null, '海のまんなか:');
+});
+
+test('地図: 印は指で押せる大きさになっている', () => {
+  // 地図は viewBox 640 幅。スマホ(横375px、左右の余白を引いて約343px)では
+  // 約0.54倍で表示されるので、viewBox の 1 は実寸 0.54px ほどになる。
+  const scale = 343 / 640;
+  for (const freq of [1, 2, 3]) {
+    const px = Geo.markRadius(freq) * 2 * scale;
+    ok(px >= 4.5, `★${freq} の印が小さすぎる: 実寸 ${px.toFixed(1)}px`);
+  }
+  ok(Geo.markRadius(3) > Geo.markRadius(1), '★が多いほど大きい');
+  // タップの許容距離は、実寸で約20px以上(指の当たりの目安)
+  ok(Geo.C.TAP_DIST * scale >= 20, 'タップの許容距離が狭い');
+});
+
 test('草原: 倒すとひよこが仲間になり、経験値は初回だけ', () => {
   const app = makeApp(U.deepClone(data));
   eq(app.hasChick(), false, '最初はひよこなし');

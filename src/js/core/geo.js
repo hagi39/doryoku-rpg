@@ -9,6 +9,9 @@
     AREA_CLEAR_STREAK: 2,   // エリアクリアに必要な連続正解
     AREA_CLEAR_FREQ: 2,     // ★2以上の国が対象
     CHOICES: 4,
+    TAP_DIST: 45,           // これより遠いタップは、どの国も選ばない(描画座標の単位)
+    TAP_MAX_CANDIDATES: 6,  // 近くに何か国もあるとき、選ばせる上限
+    TAP_DIRECT: 12,         // 印の上を正確に押したとみなす距離。ほかに近い国がなければ直接開く
   };
 
   /** 出題タイプ。capital と capitalRev は首都があいまいな国では使わない。 */
@@ -87,9 +90,71 @@
     return 'practice';
   }
 
-  /** 印の大きさ(頻出度★1〜3) */
+  /** 印の大きさ(頻出度★1〜3)。実機で「小さすぎて押しにくい」と言われて大きくした。 */
   function markRadius(freq) {
-    return 3 + (Math.max(1, Math.min(3, freq || 1)) - 1) * 1.6;
+    return 4.5 + (Math.max(1, Math.min(3, freq || 1)) - 1) * 2;
+  }
+
+  /**
+   * タップした場所にいちばん近い国を返す。遠すぎれば null。
+   * 印そのものを押させると、ヨーロッパのように密集した場所で押せなくなるため、
+   * 「近いものを選ぶ」方式にしている(印を大きくしても重なりは解決しないので)。
+   * @param {object} tr fitTransform が返す変換
+   * @param {Array} countries 画面に出ている国だけを渡す
+   * @param {number} x,y 描画座標(viewBox の単位)
+   */
+  /**
+   * タップした場所の近くにある国を、近い順に返す。
+   * 世界全体の表示では、ヨーロッパの国どうしが実寸で10px も離れていない。
+   * 印を大きくしても近いものを選んでも指では狙えないので、
+   * 候補が複数あるときは呼び出し側で選ばせる。
+   */
+  function nearHits(tr, countries, x, y, limit) {
+    const hits = [];
+    for (const c of countries) {
+      const p = project(tr, c.lon, c.lat);
+      const d = Math.sqrt((p.x - x) * (p.x - x) + (p.y - y) * (p.y - y));
+      if (d <= limit) hits.push({ country: c, dist: d });
+    }
+    hits.sort(function (a, b) { return a.dist - b.dist; });
+    return hits;
+  }
+
+  function countriesNear(tr, countries, x, y, maxDist) {
+    const limit = maxDist == null ? C.TAP_DIST : maxDist;
+    return nearHits(tr, countries, x, y, limit)
+      .slice(0, C.TAP_MAX_CANDIDATES)
+      .map(function (h) { return h.country; });
+  }
+
+  /**
+   * タップをどう扱うか決める。
+   * 印の上を正確に押していて、同じくらい近い国がほかに無ければ、その国を直接開く。
+   * そうでなければ候補を返して選ばせる。
+   * エリアを拡大していれば国どうしが離れるので、たいてい直接開く。
+   * @returns {{country}|{candidates:Array}|null}
+   */
+  function resolveTap(tr, countries, x, y) {
+    const hits = nearHits(tr, countries, x, y, C.TAP_DIST);
+    if (!hits.length) return null;
+    const nearest = hits[0];
+    const second = hits[1];
+    if (nearest.dist <= C.TAP_DIRECT && (!second || second.dist > C.TAP_DIRECT)) {
+      return { country: nearest.country };
+    }
+    return { candidates: hits.slice(0, C.TAP_MAX_CANDIDATES).map(function (h) { return h.country; }) };
+  }
+
+  function nearestCountry(tr, countries, x, y, maxDist) {
+    const limit = maxDist == null ? C.TAP_DIST : maxDist;
+    let best = null;
+    let bestD = Infinity;
+    for (const c of countries) {
+      const p = project(tr, c.lon, c.lat);
+      const d = Math.sqrt((p.x - x) * (p.x - x) + (p.y - y) * (p.y - y));
+      if (d < bestD) { bestD = d; best = c; }
+    }
+    return bestD <= limit ? best : null;
   }
 
   // ---------------- 出題する国を選ぶ ----------------
@@ -352,7 +417,7 @@
   global.Geo = {
     C, TYPES, WORLD_VIEW,
     fitTransform, project, emptyRecord, recordOf, peek, markState, markRadius,
-    weightOf, pickCountries, typesFor, pickType, distractors, makeQuestion, buildQuiz,
+    nearestCountry, countriesNear, resolveTap, weightOf, pickCountries, typesFor, pickType, distractors, makeQuestion, buildQuiz,
     applyAnswer, areaTargets, areaProgress, newlyCleared, summary,
   };
 

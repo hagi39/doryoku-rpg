@@ -79,9 +79,11 @@
       svg.appendChild(sv('polygon', { class: 'geomap__land', points: pts }));
     }
 
+    const visible = [];
     for (const c of GD.countries) {
       const p = Geo.project(tr, c.lon, c.lat);
       if (p.x < -20 || p.x > MAP_W + 20 || p.y < -20 || p.y > MAP_H + 20) continue;
+      visible.push(c);
       const st = Geo.markState(Geo.peek(geo, c.id));
       const isTarget = opts.highlight === c.id;
       if (isTarget) {
@@ -95,11 +97,21 @@
       });
       const label = c.name + '(' + STATE_LABEL[st] + '・★' + c.freq + ')';
       dot.appendChild(sv('title', null, [document.createTextNode(label)]));
-      if (opts.onPick) {
-        dot.classList.add('is-clickable');
-        dot.addEventListener('click', function () { opts.onPick(c); });
-      }
       svg.appendChild(dot);
+    }
+
+    // 印そのものではなく地図全体で受けて、いちばん近い国を選ぶ。
+    // 印を大きくしても、ヨーロッパのように密集した場所では指で狙えないため。
+    if (opts.onPick) {
+      svg.classList.add('is-pickable');
+      svg.addEventListener('click', function (e) {
+        const rect = svg.getBoundingClientRect();
+        if (!rect.width || !rect.height) return;
+        const x = ((e.clientX - rect.left) / rect.width) * MAP_W;
+        const y = ((e.clientY - rect.top) / rect.height) * MAP_H;
+        const hit = Geo.resolveTap(tr, visible, x, y);
+        if (hit) opts.onPick(hit);
+      });
     }
     return svg;
   }
@@ -164,14 +176,13 @@
   // ---------------- 草原(スライム戦) ----------------
 
   function newBattle(app) {
-    const s = app.progress.stats || {};
-    const atk = Math.floor(((s.int || 0) + (s.str || 0) + (s.sta || 0)) / 3) + 3;
+    const setup = R.battleSetup(app.progress.stats);
     return {
-      playerMax: 20 + Math.floor(s.str || 0) * 2,
-      playerHp: 20 + Math.floor(s.str || 0) * 2,
-      slimeMax: 40,
-      slimeHp: 40,
-      atk: atk,
+      playerMax: setup.playerMax,
+      playerHp: setup.playerMax,
+      slimeMax: setup.slimeMax,
+      slimeHp: setup.slimeMax,
+      atk: setup.atk,
       log: ['スライムが あらわれた!'],
       over: false,
       won: false,
@@ -181,10 +192,9 @@
   function attack(app) {
     const b = state.battle;
     if (!b || b.over) return;
-    const crit = U.random() < R.C.CRIT_RATE;
-    const dmg = Math.max(1, Math.round(b.atk * (0.8 + U.random() * 0.4)) * (crit ? 2 : 1));
-    b.slimeHp = Math.max(0, b.slimeHp - dmg);
-    b.log.push((crit ? '会心の一撃! ' : '') + 'スライムに ' + dmg + ' のダメージ');
+    const hit = R.battleHit(b.atk, U.random);
+    b.slimeHp = Math.max(0, b.slimeHp - hit.dmg);
+    b.log.push((hit.crit ? '会心の一撃! ' : '') + 'スライムに ' + hit.dmg + ' のダメージ');
 
     if (b.slimeHp <= 0) {
       b.over = true;
@@ -196,7 +206,7 @@
       return;
     }
 
-    const back = 1 + Math.floor(U.random() * 4);
+    const back = R.slimeHit(U.random);
     b.playerHp = Math.max(0, b.playerHp - back);
     b.log.push('スライムの こうげき! ' + back + ' のダメージ');
     if (b.playerHp <= 0) {
@@ -428,7 +438,7 @@
 
     root.appendChild(drawMap(app, {
       area: state.area,
-      onPick: function (c) { showCountry(app, c); },
+      onPick: function (hit) { pickCountry(app, hit); },
     }));
     root.appendChild(legend());
 
@@ -470,6 +480,33 @@
     }
     card.appendChild(list);
     return card;
+  }
+
+  /**
+   * タップの近くにある国。1つなら直接開き、複数なら選ばせる。
+   * 世界全体の表示だとヨーロッパは指で狙い分けられないため。
+   */
+  function pickCountry(app, hit) {
+    if (hit.country) return showCountry(app, hit.country);
+    const list = hit.candidates;
+    if (list.length === 1) return showCountry(app, list[0]);
+    const Geo = global.Geo;
+    const geo = A.geoState(app);
+    const body = U.el('div');
+    body.appendChild(U.el('p', { class: 'quiz-note', text: 'このあたりにある国です。' }));
+    const box = U.el('div', { class: 'geo-picker' });
+    for (const c of list) {
+      box.appendChild(U.el('button', {
+        class: 'btn geo-picker__item',
+        onclick: function () { app.closeModal(); showCountry(app, c); },
+      }, [
+        U.el('i', { class: 'geolegend__dot geolegend__dot--' + Geo.markState(Geo.peek(geo, c.id)) }),
+        U.el('span', { text: c.name }),
+        U.el('span', { class: 'geo-picker__star', text: '★' + c.freq }),
+      ]));
+    }
+    body.appendChild(box);
+    app.modal({ title: 'どの国を見ますか', body: body, actions: [{ label: '閉じる', kind: 'ghost' }] });
   }
 
   function showCountry(app, c) {
