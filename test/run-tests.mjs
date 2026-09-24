@@ -1123,6 +1123,49 @@ test('通し: 教材がそろわなければエラーにする', async () => {
 });
 
 
+// ---------------- 問題文の検査(P7) ----------------
+
+test('問題文だけで解けない問題は捨てる', () => {
+  const base = { type: 'choice', skillId: 'math_01', choices: ['1', '2', '3', '4'], answer: 0, explanation: '' };
+  const bad = [
+    '下の図の三角形ABCの面積はいくつですか。',
+    '次の表から読み取れることはどれですか。',
+    '図のように点Pが動くとき、面積はどうなりますか。',
+    'ユークリッドの互除法を使って180と120の最大公約数を求めるとき、次のようになります。',
+    '計算の手順は以下のとおりです。',
+  ];
+  for (const q of bad) {
+    ok(Quiz.isUnusable(q), `捨てられていない: ${q}`);
+    eq(Quiz.sanitizeQuestions([Object.assign({}, base, { question: q })]).length, 0, `検査を通ってしまった: ${q}`);
+  }
+});
+
+test('ふつうの問題文は捨てない', () => {
+  const good = [
+    '次の特徴にあてはまる国はどこですか。「銅の産出が世界最大」',
+    '図形の性質について、三角形の重心はどこにありますか。',
+    '(2x-5)^2 を展開するとどうなりますか。',
+    '次のうち、cos(α+β) の加法定理として正しい形はどれですか。',
+    '表面積が 24π の球の半径はいくつですか。',
+  ];
+  for (const q of good) ok(!Quiz.isUnusable(q), `まちがって捨てた: ${q}`);
+});
+
+test('教材: 長い見出しは「…」を付けて切る', () => {
+  const long = 'あ'.repeat(MaterialGen.MAX.TITLE + 10);
+  const got = MaterialGen.sanitizeMaterial(
+    { summary: 'まとめ', points: [{ title: long, body: '本文' }] },
+    { id: 'math_01' }
+  );
+  eq(got.points[0].title.length, MaterialGen.MAX.TITLE, '長さ:');
+  ok(got.points[0].title.endsWith('…'), '切ったことが分かる印:');
+  const short = MaterialGen.sanitizeMaterial(
+    { summary: 'まとめ', points: [{ title: '短い見出し', body: '本文' }] },
+    { id: 'math_01' }
+  );
+  eq(short.points[0].title, '短い見出し', '短いものはそのまま:');
+});
+
 // ---------------- 世界地図(P6) ----------------
 
 test('62か国、エリアごとの数が設計書どおり', () => {

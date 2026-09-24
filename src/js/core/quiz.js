@@ -159,6 +159,21 @@
     });
   }
 
+  /* 問題文だけでは解けないもの。
+   * 図や表は画面に出せないので、それらを指している問題は成立しない。
+   * 「次のようになります。」で終わる問題は、続きを約束したまま何も続いていない。 */
+  const UNUSABLE = [
+    /[下上次右左]の図/, /図のように/, /図を見て/, /図中/,
+    /[下上次]の表/, /表のように/, /表を見て/,
+    /(次|以下)の(ようになります|ようになる|とおりです|通りです)。?$/,
+  ];
+
+  /** 問題文が、画面に出せないものを指していないか */
+  function isUnusable(question) {
+    const q = String(question || '').trim();
+    return UNUSABLE.some(function (re) { return re.test(q); });
+  }
+
   /**
    * AIが返した問題を検査し、使える形にそろえる。壊れた問題は捨てる。
    * 選択肢の並びはここで混ぜる(AIは正解を同じ位置に置きがちなため)。
@@ -176,6 +191,7 @@
       const question = str(r.question);
       const skillId = str(r.skillId);
       if (!question) continue;
+      if (isUnusable(question)) continue;
       if (allowed && !allowed.has(skillId)) continue;
       const key = normalize(question);
       if (seen.has(key)) continue;
@@ -464,7 +480,7 @@
   global.Quiz = {
     C: C,
     normalize, parseNumber, gradeWritten, gradeAnswer,
-    sanitizeQuestions, reshuffleChoices, pickSet, pickUnlockSet, pickReviewSet, pickCheckSet,
+    sanitizeQuestions, isUnusable, reshuffleChoices, pickSet, pickUnlockSet, pickReviewSet, pickCheckSet,
     scoreTest, passLine, judge,
     ancestorsOf, depthMap, diagnosisTargets, diagnosisOutcome,
     addMistake, recordReview, reviewKey, pickReviewSession,
