@@ -1337,6 +1337,182 @@ test('草原の入場条件: 足りないものが並ぶ', () => {
   eq(okCheck.ok, true, 'ちょうど条件を満たす:');
 });
 
+
+// ---------------- P7: 通し検証・容量・受け渡し ----------------
+
+test('P7 容量: 最大に近い進捗でも、目安5MBの半分におさまる', () => {
+  // 教材110件・復習300問・記録500件・テスト履歴200件を、すべて上限の長さで積む
+  const ja = (n) => 'あ'.repeat(n);
+  const d = U.deepClone(data);
+  const p = Store.emptyProgress();
+  const study = new Set(d.trees.filter((t) => t.category === 'study').map((t) => t.id));
+
+  for (const sk of d.skills) {
+    p.skills[sk.id] = { unlocked: true, unlockedAt: 1, polishCount: 10, polishedAt: 1 };
+    p.daily[Rules.dailyKey('check', sk.id)] = '2026-09-24';
+    if (!study.has(sk.tree)) continue;
+    p.materials[sk.id] = {
+      skillId: sk.id, at: 1, model: 'claude-haiku-4-5',
+      summary: ja(MaterialGen.MAX.BODY),
+      points: Array.from({ length: MaterialGen.MAX.POINTS }, () => ({
+        title: ja(MaterialGen.MAX.TITLE), body: ja(MaterialGen.MAX.BODY),
+      })),
+      examples: Array.from({ length: MaterialGen.MAX.EXAMPLES }, () => ({
+        question: ja(MaterialGen.MAX.BODY), solution: ja(MaterialGen.MAX.BODY),
+      })),
+      pitfalls: Array.from({ length: MaterialGen.MAX.PITFALLS }, () => ja(MaterialGen.MAX.BODY)),
+    };
+  }
+  for (let i = 0; i < Quiz.C.REVIEW_LIST_MAX; i++) {
+    p.reviewList.push({
+      id: 'rv_' + i, key: 'math_01|' + i, skillId: 'math_01',
+      q: { type: 'choice', skillId: 'math_01', question: ja(120),
+           choices: [ja(30), ja(30), ja(30), ja(30)], answer: 1, explanation: ja(120) },
+      addedAt: 1, lastAt: 1, wrong: 3, streak: 1, cleared: false,
+    });
+  }
+  for (let i = 0; i < Actions.MAX_LOGS; i++) {
+    p.logs.push({ id: 'lg_' + i, at: 1, skillId: 'math_01', kind: 'practice',
+                  minutes: 60, memo: ja(100), xp: 15, gains: { int: 1.2 }, uses: ['math_02'] });
+  }
+  for (let i = 0; i < 200; i++) {
+    p.testLog.push({ at: 1, type: 'unlock', skillId: 'math_01', valid: 4, correct: 3, xp: 12 });
+  }
+  for (const t of d.trees) {
+    p.diagnoses[t.id] = { at: 1, claim: 'math_05', memo: ja(200), comment: ja(400),
+                          results: d.skills.slice(0, 6).map((sk) => ({ skillId: sk.id, correct: true })) };
+  }
+  for (const c of GeoData.countries) {
+    p.geo.countries[c.id] = { asked: 30, wrong: 12, streak: 2, byType: { pos: 3, capital: 4 } };
+  }
+
+  const bytes = Buffer.byteLength(JSON.stringify(p), 'utf8')
+    + Buffer.byteLength(JSON.stringify(d), 'utf8');
+  const mb = bytes / 1024 / 1024;
+  ok(mb < 2.5, `最大構成が大きすぎます: ${mb.toFixed(2)} MB`);
+  // 上限を増やす変更が入ったら気づけるよう、下限も見ておく(想定より小さければ計算漏れ)
+  ok(mb > 1.5, `想定より小さすぎます(積み忘れ?): ${mb.toFixed(2)} MB`);
+});
+
+test('P7 受け渡し: バックアップの書き出し→読み込みで進捗が戻る', () => {
+  const app = makeApp(U.deepClone(data));
+  const now = Date.now();
+  Actions.unlockSkill(app, 'math_01', 'self', { now });
+  U.setRandom(() => 0.99);
+  Actions.recordLog(app, { skillId: 'math_01', kindId: 'practice', now });
+  U.setRandom(null);
+  Actions.winGrass(app, { now });
+  Actions.finishGeoQuiz(app, [{ countryId: 'jp', type: 'pos', correct: true }], { now });
+
+  const settings = Object.assign(Store.defaultSettings(), { apiKey: 'sk-ant-himitsu', model: 'claude-opus-5' });
+  const backup = Store.exportBackup(app.progress, app.treeData, settings, {});
+  eq(backup.settings.apiKey, undefined, 'APIキーはバックアップに入れない:');
+  eq(backup.app, '努力RPG', '目印:');
+
+  const text = JSON.stringify(backup, null, 2);
+  const read = Store.importBackup(text);
+  eq(read.ok, true, '読み込み: ' + (read.error || ''));
+
+  Store.applyBackup(read.backup);
+  const back = Store.loadProgress(app.treeData);
+  eq(back.totalXp, app.progress.totalXp, '経験値:');
+  eq(back.companions.chick, true, 'ひよこ:');
+  eq(back.skills.math_01.unlocked, true, '解放:');
+  eq(back.logs.length, app.progress.logs.length, '記録の件数:');
+  eq(back.geo.countries.jp.streak, 1, '世界地図の記録:');
+  // 受け取った端末のAPIキーは消さない
+  eq(Store.loadSettings().apiKey, '', '相手のキーを上書きしない:');
+  eq(Store.loadSettings().model, 'claude-opus-5', '設定は引き継ぐ:');
+
+  eq(Store.importBackup('{壊れた').ok, false, '壊れたJSON:');
+  eq(Store.importBackup('{"app":"x"}').ok, false, 'progressが無い:');
+});
+
+test('P7 通し: 診断→記録→教材→確認問題→復習→世界地図→草原', async () => {
+  const app = makeApp(U.deepClone(data));
+  const now = Date.now();
+
+  // 1) 診断でスキルが解放される
+  Ai.setMock(async () => ({ text: JSON.stringify({ questions: [
+    ch('math_01', '診断1'), ch('math_02', '診断2'), ch('math_03', '診断3'),
+  ] }) }));
+  try {
+    const treeSkills = app.treeData.skills.filter((sk) => sk.tree === 'math');
+    const targets = Quiz.diagnosisTargets({ treeSkills, skillById: app.skillById, claimIds: ['math_03'] });
+    const qs = await QuizGen.diagnosisQuestions(app, app.tree('math'), targets, {});
+    ok(qs.length >= 2, '診断の問題:');
+    const diag = Actions.finishDiagnosis(app, 'math', answerAll(qs), { now });
+    ok(diag.unlocked.length >= 1, '診断で解放:');
+    ok(app.isUnlocked('math_01'), 'math_01 が解放:');
+
+    // 2) 記録で経験値・パラメーター・サビ
+    U.setRandom(() => 0.99);
+    const log = Actions.recordLog(app, { skillId: 'math_01', kindId: 'practice', now });
+    U.setRandom(null);
+    ok(log.xp > 0, '記録の経験値:');
+    ok(app.progress.stats.int > 0, '知力が上がる:');
+    eq(app.rust('math_01', now), 0, '記録直後はサビ0:');
+
+    // 3) 教材を作って保存
+    Ai.setMock(async () => ({ text: JSON.stringify({
+      summary: 'まとめ',
+      points: [{ title: '要点', body: '内容' }],
+      examples: [{ question: '例題', solution: '解答' }],
+      pitfalls: ['つまずき'],
+    }) }));
+    const material = await MaterialGen.generate(app, app.skill('math_01'));
+    Actions.saveMaterial(app, 'math_01', material, { now, model: 'claude-haiku-4-5' });
+    eq(app.progress.materials.math_01.points.length, 1, '教材の保存:');
+
+    // 4) 確認問題。まちがえたぶんが復習リストに入る
+    Ai.setMock(async () => ({ text: JSON.stringify({ questions: [
+      ch('math_01', '確認1'), ch('math_01', '確認2'), ch('math_01', '確認3'),
+      wr('math_01', '確認4', '5'), wr('math_01', '確認5', '7'),
+    ] }) }));
+    const checkQs = await MaterialGen.checkQuestions(app, app.skill('math_01'), material, {});
+    eq(checkQs.length, 3, '確認問題は3問:');
+    const xpBefore = app.progress.totalXp;
+    const intBefore = app.progress.stats.int;
+    const check = Actions.finishMaterialCheck(app, 'math_01', answers(checkQs, 1), { now });
+    eq(check.mistakes, 2, 'まちがい2問が復習リストへ:');
+    eq(app.progress.reviewList.length, 2, '復習リストの件数:');
+    eq(app.progress.totalXp, xpBefore + Rules.reviewXp(1), '確認問題の経験値:');
+    eq(app.progress.stats.int, intBefore, 'パラメーターは動かさない:');
+
+    // 同じ日の2回目は経験値0
+    const again = Actions.finishMaterialCheck(app, 'math_01', answers(checkQs, 3), { now });
+    eq(again.xp, 0, '1日1スキル1回だけ:');
+
+    // 5) 復習リストを解く。2回連続正解で克服
+    const items = app.progress.reviewList.map((it) => ({ q: it.q, given: it.q.answer }));
+    Actions.finishReviewSession(app, items, { now });
+    Actions.finishReviewSession(app, items, { now: now + DAY });
+    eq(app.progress.reviewList.filter((it) => it.cleared).length, 2, '克服:');
+
+    // 6) 世界地図
+    const geoRes = Actions.finishGeoQuiz(app, [
+      { countryId: 'jp', type: 'pos', correct: true },
+      { countryId: 'cn', type: 'capital', correct: false },
+    ], { now });
+    eq(geoRes.correct, 1, '世界地図の正解数:');
+    eq(Geo.markState(Geo.peek(app.progress.geo, 'cn')), 'weak', 'まちがえた国は赤:');
+
+    // 7) 草原
+    eq(app.hasChick(), false, 'まだひよこなし:');
+    Actions.winGrass(app, { now });
+    eq(app.hasChick(), true, 'ひよこが仲間に:');
+
+    // 8) 保存して読み直しても、ここまでが残る
+    Store.saveProgress(app.progress);
+    const reloaded = Store.loadProgress(app.treeData);
+    eq(reloaded.totalXp, app.progress.totalXp, '読み直し後の経験値:');
+    eq(reloaded.reviewList.length, app.progress.reviewList.length, '復習リスト:');
+    eq(reloaded.materials.math_01.skillId, 'math_01', '教材:');
+    eq(reloaded.companions.chick, true, 'ひよこ:');
+    eq(reloaded.geo.countries.jp.asked, 1, '世界地図の記録:');
+  } finally { Ai.setMock(null); U.setRandom(null); }
+});
+
 for (const [name, fn] of asyncTests) {
   try { await fn(); pass++; }
   catch (e) { failures.push(`${name}\n    ${e.message}`); }

@@ -43,7 +43,26 @@ want(/"DotGothic16",\s*"Hiragino/.test(html), 'フォントのフォールバッ
 want(/anthropic-dangerous-direct-browser-access/.test(html), 'ブラウザ直接呼び出しのヘッダがありません');
 want(!/sk-ant-[A-Za-z0-9]{10,}/.test(html), 'APIキーらしき文字列が埋め込まれています');
 
+// 受け渡し(P7): 他人の端末で file:// から開いても困らないか
+want(!/\/Users\/|\/home\/|[A-Za-z]:\\\\/.test(html), '作った人の端末のパスが残っています');
+want(!/localhost|127\.0\.0\.1/.test(html), 'localhost への参照が残っています');
+want(!/<!--@(CSS|JS|BUILT_AT)-->/.test(html), 'テンプレートのプレースホルダが残っています');
+want(/<html[^>]*\slang="ja"/i.test(html), 'lang="ja" がありません');
+
+// 6タブと、各フェーズの中身が入っているか
+for (const tab of ['home', 'tree', 'learn', 'log', 'quest', 'settings']) {
+  want(html.includes(`App.register('${tab}'`), `${tab} タブが入っていません`);
+}
+want(/global\.GeoData\s*=/.test(html), '世界地図のデータが入っていません');
+want(/ALL_CAPITALS_EXCLUDED/.test(html), '首都を出さない国の指定が入っていません');
+for (const country of ['日本', 'パプアニューギニア', 'コートジボワール', 'ジャマイカ', 'カザフスタン']) {
+  want(html.includes(country), `世界地図の国データが欠けています: ${country}`);
+}
+want(/doryoku-rpg\/progress/.test(html), '保存キーが入っていません');
+
 const kb = Buffer.byteLength(html, 'utf8') / 1024;
+// 単一HTMLで配って開いてもらう前提なので、大きくなりすぎていないか見る
+want(kb < 600, `成果物が大きすぎます: ${kb.toFixed(1)} KB`);
 console.log(`\n  dist/努力RPG.html: ${kb.toFixed(1)} KB`);
 if (problems.length) {
   console.error('\n  ✘ 問題あり');
