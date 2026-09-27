@@ -403,18 +403,49 @@
 
   // ---------------- 冒険 ----------------
 
+  function stageCleared(app, stageId) {
+    const c = app.progress.stageClears;
+    return !!c && typeof c[stageId] === 'number';
+  }
+
+  /** ステージに挑めるか(画面に並べる条件つき) */
+  function stageStatus(app, stageId, now) {
+    const stage = R.stageById(stageId);
+    const prev = R.prevStage(stageId);
+    return R.stageCheck(stage, {
+      stats: app.progress.stats,
+      freshCount: freshSkillCount(app, now),
+      prevCleared: !prev || stageCleared(app, prev.id),
+      companions: app.progress.companions,
+    });
+  }
+
+  /**
+   * ステージの敵を倒した。ペットが必ず仲間になり、初回だけ経験値とクリア記録が入る。
+   * クリアしたステージでは画面から再戦できないが、2回目が来ても二重には入らない。
+   */
+  function winStage(app, stageId, opts) {
+    const now = (opts && opts.now) || Date.now();
+    const stage = R.stageById(stageId);
+    if (!app.progress.companions) app.progress.companions = {};
+    if (!app.progress.stageClears) app.progress.stageClears = {};
+    const first = !stageCleared(app, stageId);
+    app.progress.companions[stage.pet] = true;
+    let gain = { xp: 0, level: R.levelOf(app.progress.totalXp), leveledUp: false };
+    if (first) {
+      app.progress.stageClears[stageId] = now;
+      gain = gainXp(app, stage.xp);
+      pushTestLog(app, stageId === 'grass'
+        ? { at: now, type: 'grass', xp: gain.xp }
+        : { at: now, type: 'stage', stage: stageId, xp: gain.xp });
+    }
+    app.save();
+    return { first: first, pet: stage.pet, xp: gain.xp, level: gain.level, leveledUp: gain.leveledUp };
+  }
+
   /** スライムを倒した。ひよこが仲間になり、経験値が入る(2回目からは経験値なし)。 */
   function winGrass(app, opts) {
-    const now = (opts && opts.now) || Date.now();
-    if (!app.progress.companions) app.progress.companions = { chick: false };
-    const first = !app.progress.companions.chick;
-    app.progress.companions.chick = true;
-    const gain = first
-      ? gainXp(app, R.C.GRASS_CLEAR_XP)
-      : { xp: 0, level: R.levelOf(app.progress.totalXp), leveledUp: false };
-    if (first) pushTestLog(app, { at: now, type: 'grass', xp: gain.xp });
-    app.save();
-    return { first: first, xp: gain.xp, level: gain.level, leveledUp: gain.leveledUp };
+    return winStage(app, 'grass', opts);
   }
 
   function geoState(app) {
@@ -458,7 +489,7 @@
     };
   }
 
-  /** サビ50%未満の解放済みスキル数(草原の入場条件に使う) */
+  /** サビ50%未満の解放済みスキル数(冒険の必要条件「サビていないスキルの数」) */
   function freshSkillCount(app, now) {
     const t = now == null ? Date.now() : now;
     return app.unlockedSkills().filter(function (s) {
@@ -471,7 +502,7 @@
     recordLog, unlockSkill, freshSkillCount, applyPartialRecovery,
     finishUnlockTest, finishReviewTest, finishDiagnosis, saveMistakes,
     gainXp, saveMaterial, deleteMaterial, finishMaterialCheck,
-    winGrass, finishGeoQuiz, geoState,
+    stageCleared, stageStatus, winStage, winGrass, finishGeoQuiz, geoState,
     finishReviewSession, removeReviewItem, removeClearedReviewItems,
   };
 })(typeof window !== 'undefined' ? window : globalThis);

@@ -35,7 +35,39 @@
     GRASS_HP_PER: 3,
     GRASS_BACK_MIN: 1,      // スライムの反撃は 1〜4
     GRASS_BACK_SPREAD: 4,
+    STAGE_EASE: 0.92,       // カメ・ユキウサギ1匹ごとに、冒険の必要条件 ×0.92(切り上げ)
   };
+
+  // ---------------- 冒険のステージ ----------------
+  // 遊んでいる人の Artifact 版に合わせた 草原→海→砂漠→雪山→火山。
+  // 倒すと pet が必ず仲間になる。ready:false のステージは「準備中」として見せるだけ。
+  // 敵のHP = enemyBase + 攻撃力×enemyPer、反撃 = backMin 〜 backMin+backSpread-1
+  const STAGES = [
+    { id: 'grass', name: '草原', enemy: 'スライム', icon: '🟢', pet: 'chick', ready: true,
+      req: C.GRASS_REQ, fresh: C.GRASS_FRESH_COUNT, xp: C.GRASS_CLEAR_XP,
+      enemyBase: C.GRASS_SLIME_BASE, enemyPer: C.GRASS_SLIME_PER,
+      backMin: C.GRASS_BACK_MIN, backSpread: C.GRASS_BACK_SPREAD },
+    // 条件ぴったりで勝率約8割・残りHP約15%。少し育てるとほぼ確実に勝てる
+    { id: 'sea', name: '海', enemy: 'ビリビリクラゲ', icon: '🪼', pet: 'turtle', ready: true,
+      req: { int: 15, str: 7, sta: 5 }, fresh: 16, xp: 120,
+      enemyBase: 30, enemyPer: 8, backMin: 3, backSpread: 4 },
+    { id: 'desert', name: '砂漠', enemy: 'デスストーカー', icon: '🦂', pet: 'fennec', ready: false,
+      req: { int: 30, str: 13, sta: 10 }, fresh: 30 },
+    { id: 'snow', name: '雪山', enemy: 'アイスゴーレム', icon: '🗿', pet: 'snowhare', ready: false,
+      req: { int: 50, str: 20, sta: 16 }, fresh: 48 },
+    { id: 'volcano', name: '火山', enemy: 'ドラゴン', icon: '🐲', pet: 'minidragon', ready: false,
+      req: { int: 75, str: 28, sta: 24 }, fresh: 70 },
+  ];
+
+  // ease: 冒険の必要条件を STAGE_EASE ぶんやさしくするペット
+  // (フェネック・ユキウサギ・ミニドラゴンの経験値やサビの効果は、そのステージを作るときに入れる)
+  const PETS = [
+    { id: 'chick',      name: 'ひよこ',       icon: '🐤', text: '経験値+10%、スキルのサビがゆっくり進む' },
+    { id: 'turtle',     name: 'カメ',         icon: '🐢', text: '冒険の必要条件が8%やさしくなる', ease: true },
+    { id: 'fennec',     name: 'フェネック',   icon: '🦊', text: '経験値がさらに+10%' },
+    { id: 'snowhare',   name: 'ユキウサギ',   icon: '🐇', text: '冒険の必要条件が8%やさしくなり、サビも遅くなる', ease: true },
+    { id: 'minidragon', name: 'ミニドラゴン', icon: '🐉', text: '経験値がさらに+15%' },
+  ];
 
   // ---------------- レベル ----------------
 
@@ -169,21 +201,53 @@
     return true;
   }
 
-  // ---------------- 冒険(草原) ----------------
+  // ---------------- 冒険(ステージ) ----------------
 
-  function grassCheck(params) {
+  function stageById(id) {
+    return STAGES.find(function (st) { return st.id === id; }) || null;
+  }
+
+  /** 前のステージ(草原なら null) */
+  function prevStage(id) {
+    const i = STAGES.findIndex(function (st) { return st.id === id; });
+    return i > 0 ? STAGES[i - 1] : null;
+  }
+
+  /**
+   * ペットの補正をかけた必要な値。×0.92 を1匹ごとにかけて切り上げる
+   * (Artifact 版で、火山のスキル数70がカメ+ユキウサギで60になっていたのと同じ計算)。
+   * 25×0.92 が 23.000000000000004 になるような誤差で1増えないよう、少しだけ引いてから切り上げる。
+   */
+  function easedNeed(base, easeCount) {
+    const v = base * Math.pow(C.STAGE_EASE, easeCount || 0);
+    return Math.ceil(v - 1e-9);
+  }
+
+  /** 持っているペットのうち、必要条件をやさしくするものの数 */
+  function easeCount(companions) {
+    const c = companions || {};
+    return PETS.filter(function (p) { return p.ease && c[p.id]; }).length;
+  }
+
+  /**
+   * ステージに挑めるか。items は画面に並べる4つの条件(足りていてもすべて入る)。
+   * @param {{stats, freshCount:number, prevCleared:boolean, companions}} params
+   */
+  function stageCheck(stage, params) {
     const stats = params.stats || {};
-    const missing = [];
-    for (const key of Object.keys(C.GRASS_REQ)) {
-      const need = C.GRASS_REQ[key];
-      const have = Math.floor(stats[key] || 0);
-      if (have < need) missing.push({ type: 'stat', stat: key, need: need, have: have });
+    const ease = easeCount(params.companions);
+    const items = [];
+    for (const key of Object.keys(stage.req)) {
+      const need = easedNeed(stage.req[key], ease);
+      const have = stats[key] || 0;
+      items.push({ type: 'stat', stat: key, need: need, have: have, met: Math.floor(have) >= need });
     }
+    const freshNeed = easedNeed(stage.fresh, ease);
     const fresh = params.freshCount || 0;
-    if (fresh < C.GRASS_FRESH_COUNT) {
-      missing.push({ type: 'fresh', need: C.GRASS_FRESH_COUNT, have: fresh });
-    }
-    return { ok: missing.length === 0, missing: missing };
+    items.push({ type: 'fresh', need: freshNeed, have: fresh, met: fresh >= freshNeed });
+    const prevOk = !prevStage(stage.id) || !!params.prevCleared;
+    const statsOk = items.every(function (it) { return it.met; });
+    return { ok: prevOk && statsOk, prevOk: prevOk, items: items, ease: ease };
   }
 
   /**
@@ -192,12 +256,13 @@
    * 戦いにならない(実機で「連打する前に終わる」と指摘された)。
    * 攻撃力に合わせてHPを決めることで、強くなってもターン数が保たれる。
    */
-  function battleSetup(stats) {
+  function battleSetup(stats, stage) {
     const s = stats || {};
+    const st = stage || STAGES[0];
     const atk = Math.floor(((s.int || 0) + (s.str || 0) + (s.sta || 0)) / 3) + C.GRASS_ATK_BASE;
     return {
       atk: atk,
-      slimeMax: C.GRASS_SLIME_BASE + atk * C.GRASS_SLIME_PER,
+      enemyMax: st.enemyBase + atk * st.enemyPer,
       playerMax: C.GRASS_HP_BASE + Math.floor(s.str || 0) * C.GRASS_HP_PER,
     };
   }
@@ -210,10 +275,11 @@
     return { dmg: dmg, crit: crit };
   }
 
-  /** スライムの反撃 */
-  function slimeHit(rand) {
+  /** 敵の反撃(stage を省くとスライム) */
+  function enemyHit(rand, stage) {
     const r = rand || Math.random;
-    return C.GRASS_BACK_MIN + Math.floor(r() * C.GRASS_BACK_SPREAD);
+    const st = stage || STAGES[0];
+    return st.backMin + Math.floor(r() * st.backSpread);
   }
 
   // ---------------- 連続日数 ----------------
@@ -257,8 +323,9 @@
     C: C,
     levelOf, xpForLevel, levelProgress,
     safeDays, fullDays, rustOf, polishedAtForRust, partialPolish,
-    logXp, statGains, isUnlockable, grassCheck, updateStreak,
-    battleSetup, battleHit, slimeHit,
+    logXp, statGains, isUnlockable, updateStreak,
+    STAGES, PETS, stageById, prevStage, easedNeed, easeCount, stageCheck,
+    battleSetup, battleHit, enemyHit,
     dailyKey, dailyDone, reviewXp,
   };
 

@@ -363,6 +363,13 @@
       app.toast(app.progress.companions.chick ? 'ひよこが仲間になった' : 'ひよこが離れた');
     }));
 
+    row.appendChild(button('カメ切替', function () {
+      app.progress.companions.turtle = !app.progress.companions.turtle;
+      app.save();
+      app.render();
+      app.toast(app.progress.companions.turtle ? 'カメが仲間になった' : 'カメが離れた');
+    }));
+
     row.appendChild(button('最初の1段を解放', function () {
       const now = Date.now();
       let n = 0;

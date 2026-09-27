@@ -120,8 +120,10 @@
       host.innerHTML = '';
       const p = global.Rules.levelProgress(this.progress.totalXp);
       host.appendChild(U.el('span', { text: 'Lv.' + p.level }));
-      if (this.progress.companions && this.progress.companions.chick) {
-        host.appendChild(U.el('span', { title: 'ひよこが仲間にいる', text: '🐤' }));
+      const pets = this.progress.companions || {};
+      for (const pet of global.Rules.PETS) {
+        if (!pets[pet.id]) continue;
+        host.appendChild(U.el('span', { title: pet.name + 'が仲間にいる', text: pet.icon }));
       }
     },
 

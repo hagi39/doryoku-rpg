@@ -1,0 +1,393 @@
+{
+ "ver": 1,
+ "dataVer": 0,
+ "totalXp": 184,
+ "stats": {
+  "int": 19.5,
+  "str": 4,
+  "sta": 2
+ },
+ "streak": {
+  "count": 1,
+  "lastDate": "2026-09-26"
+ },
+ "skills": {
+  "math_01": {
+   "unlocked": true,
+   "unlockedAt": 1790071200000,
+   "polishCount": 2,
+   "polishedAt": 1790416800000,
+   "unlockedBy": "self"
+  },
+  "math_02": {
+   "unlocked": true,
+   "unlockedAt": 1790071200000,
+   "polishCount": 2,
+   "polishedAt": 1790416800000,
+   "unlockedBy": "self"
+  },
+  "math_08": {
+   "unlocked": true,
+   "unlockedAt": 1790071200000,
+   "polishCount": 2,
+   "polishedAt": 1790416800000,
+   "unlockedBy": "self"
+  },
+  "math_10": {
+   "unlocked": true,
+   "unlockedAt": 1790071200000,
+   "polishCount": 2,
+   "polishedAt": 1790416800000,
+   "unlockedBy": "self"
+  },
+  "phys_01": {
+   "unlocked": true,
+   "unlockedAt": 1790071200000,
+   "polishCount": 2,
+   "polishedAt": 1790416800000,
+   "unlockedBy": "self"
+  },
+  "phys_03": {
+   "unlocked": true,
+   "unlockedAt": 1790071200000,
+   "polishCount": 2,
+   "polishedAt": 1790416800000,
+   "unlockedBy": "self"
+  },
+  "chem_01": {
+   "unlocked": true,
+   "unlockedAt": 1790071200000,
+   "polishCount": 2,
+   "polishedAt": 1790416800000,
+   "unlockedBy": "self"
+  },
+  "eng_01": {
+   "unlocked": true,
+   "unlockedAt": 1790071200000,
+   "polishCount": 2,
+   "polishedAt": 1790416800000,
+   "unlockedBy": "self"
+  },
+  "eng_14": {
+   "unlocked": true,
+   "unlockedAt": 1790071200000,
+   "polishCount": 2,
+   "polishedAt": 1790416800000,
+   "unlockedBy": "self"
+  },
+  "kobun_01": {
+   "unlocked": true,
+   "unlockedAt": 1790071200000,
+   "polishCount": 2,
+   "polishedAt": 1790416800000,
+   "unlockedBy": "self"
+  },
+  "kobun_02": {
+   "unlocked": true,
+   "unlockedAt": 1790071200000,
+   "polishCount": 2,
+   "polishedAt": 1790416800000,
+   "unlockedBy": "self"
+  },
+  "kanbun_01": {
+   "unlocked": true,
+   "unlockedAt": 1790071200000,
+   "polishCount": 2,
+   "polishedAt": 1790416800000,
+   "unlockedBy": "self"
+  },
+  "geo_01": {
+   "unlocked": true,
+   "unlockedAt": 1790071200000,
+   "polishCount": 1,
+   "polishedAt": 1790071200000,
+   "unlockedBy": "self"
+  },
+  "geo_02": {
+   "unlocked": true,
+   "unlockedAt": 1790071200000,
+   "polishCount": 1,
+   "polishedAt": 1790071200000,
+   "unlockedBy": "self"
+  },
+  "up_01": {
+   "unlocked": true,
+   "unlockedAt": 1790071200000,
+   "polishCount": 1,
+   "polishedAt": 1790071200000,
+   "unlockedBy": "self"
+  },
+  "up_05": {
+   "unlocked": true,
+   "unlockedAt": 1790071200000,
+   "polishCount": 1,
+   "polishedAt": 1790071200000,
+   "unlockedBy": "self"
+  },
+  "low_01": {
+   "unlocked": true,
+   "unlockedAt": 1790071200000,
+   "polishCount": 1,
+   "polishedAt": 1790071200000,
+   "unlockedBy": "self"
+  },
+  "core_01": {
+   "unlocked": true,
+   "unlockedAt": 1790071200000,
+   "polishCount": 1,
+   "polishedAt": 1790071200000,
+   "unlockedBy": "self"
+  },
+  "core_03": {
+   "unlocked": true,
+   "unlockedAt": 1790071200000,
+   "polishCount": 1,
+   "polishedAt": 1790071200000,
+   "unlockedBy": "self"
+  },
+  "end_01": {
+   "unlocked": true,
+   "unlockedAt": 1790071200000,
+   "polishCount": 1,
+   "polishedAt": 1790071200000,
+   "unlockedBy": "self"
+  }
+ },
+ "logs": [
+  {
+   "id": "log_1790416800000_495",
+   "at": 1790416800000,
+   "date": "2026-09-26",
+   "skillId": "kanbun_01",
+   "treeId": "kanbun",
+   "kindId": "practice",
+   "usesIds": [],
+   "note": "",
+   "xp": 8,
+   "crit": false,
+   "gains": {
+    "int": 0.3
+   },
+   "rustBefore": 0
+  },
+  {
+   "id": "log_1790416800000_63",
+   "at": 1790416800000,
+   "date": "2026-09-26",
+   "skillId": "kobun_02",
+   "treeId": "kobun",
+   "kindId": "practice",
+   "usesIds": [],
+   "note": "",
+   "xp": 10,
+   "crit": false,
+   "gains": {
+    "int": 0.38
+   },
+   "rustBefore": 0
+  },
+  {
+   "id": "log_1790416800000_809",
+   "at": 1790416800000,
+   "date": "2026-09-26",
+   "skillId": "kobun_01",
+   "treeId": "kobun",
+   "kindId": "practice",
+   "usesIds": [],
+   "note": "",
+   "xp": 8,
+   "crit": false,
+   "gains": {
+    "int": 0.31
+   },
+   "rustBefore": 0
+  },
+  {
+   "id": "log_1790416800000_673",
+   "at": 1790416800000,
+   "date": "2026-09-26",
+   "skillId": "eng_14",
+   "treeId": "eng",
+   "kindId": "practice",
+   "usesIds": [],
+   "note": "",
+   "xp": 8,
+   "crit": true,
+   "gains": {
+    "int": 0.62
+   },
+   "rustBefore": 0
+  },
+  {
+   "id": "log_1790416800000_30",
+   "at": 1790416800000,
+   "date": "2026-09-26",
+   "skillId": "eng_01",
+   "treeId": "eng",
+   "kindId": "practice",
+   "usesIds": [],
+   "note": "",
+   "xp": 10,
+   "crit": false,
+   "gains": {
+    "int": 0.39
+   },
+   "rustBefore": 0
+  },
+  {
+   "id": "log_1790416800000_59",
+   "at": 1790416800000,
+   "date": "2026-09-26",
+   "skillId": "chem_01",
+   "treeId": "chem",
+   "kindId": "practice",
+   "usesIds": [],
+   "note": "",
+   "xp": 10,
+   "crit": false,
+   "gains": {
+    "int": 0.4
+   },
+   "rustBefore": 0
+  },
+  {
+   "id": "log_1790416800000_193",
+   "at": 1790416800000,
+   "date": "2026-09-26",
+   "skillId": "phys_03",
+   "treeId": "phys",
+   "kindId": "practice",
+   "usesIds": [],
+   "note": "",
+   "xp": 12,
+   "crit": false,
+   "gains": {
+    "int": 0.48
+   },
+   "rustBefore": 0
+  },
+  {
+   "id": "log_1790416800000_997",
+   "at": 1790416800000,
+   "date": "2026-09-26",
+   "skillId": "phys_01",
+   "treeId": "phys",
+   "kindId": "practice",
+   "usesIds": [],
+   "note": "",
+   "xp": 10,
+   "crit": true,
+   "gains": {
+    "int": 0.82
+   },
+   "rustBefore": 0
+  },
+  {
+   "id": "log_1790416800000_915",
+   "at": 1790416800000,
+   "date": "2026-09-26",
+   "skillId": "math_10",
+   "treeId": "math",
+   "kindId": "practice",
+   "usesIds": [],
+   "note": "",
+   "xp": 12,
+   "crit": false,
+   "gains": {
+    "int": 0.5
+   },
+   "rustBefore": 0
+  },
+  {
+   "id": "log_1790416800000_529",
+   "at": 1790416800000,
+   "date": "2026-09-26",
+   "skillId": "math_08",
+   "treeId": "math",
+   "kindId": "practice",
+   "usesIds": [],
+   "note": "",
+   "xp": 12,
+   "crit": false,
+   "gains": {
+    "int": 0.5
+   },
+   "rustBefore": 0
+  },
+  {
+   "id": "log_1790416800000_987",
+   "at": 1790416800000,
+   "date": "2026-09-26",
+   "skillId": "math_02",
+   "treeId": "math",
+   "kindId": "practice",
+   "usesIds": [],
+   "note": "",
+   "xp": 10,
+   "crit": false,
+   "gains": {
+    "int": 0.42
+   },
+   "rustBefore": 0
+  },
+  {
+   "id": "log_1790416800000_299",
+   "at": 1790416800000,
+   "date": "2026-09-26",
+   "skillId": "math_01",
+   "treeId": "math",
+   "kindId": "practice",
+   "usesIds": [],
+   "note": "",
+   "xp": 10,
+   "crit": false,
+   "gains": {
+    "int": 0.43
+   },
+   "rustBefore": 0
+  }
+ ],
+ "reviewList": [],
+ "testLog": [
+  {
+   "at": 1790503200000,
+   "type": "geo",
+   "valid": 2,
+   "correct": 1,
+   "cleared": [],
+   "xp": 4
+  },
+  {
+   "at": 1790330400000,
+   "type": "grass",
+   "xp": 60
+  }
+ ],
+ "diagnoses": {},
+ "materials": {},
+ "geo": {
+  "countries": {
+   "jp": {
+    "asked": 1,
+    "wrong": 0,
+    "streak": 1,
+    "byType": {}
+   },
+   "cn": {
+    "asked": 1,
+    "wrong": 1,
+    "streak": 0,
+    "byType": {
+     "capital": 1
+    }
+   }
+  },
+  "areasCleared": []
+ },
+ "companions": {
+  "chick": true
+ },
+ "daily": {},
+ "createdAt": 1789639200000,
+ "updatedAt": 1790550555486
+}

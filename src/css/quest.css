@@ -81,7 +81,60 @@
 
 .notice--good { border-color: var(--good); color: var(--text); }
 
-/* 草原(スライム戦) */
+/* ステージのタブ(草原・海・砂漠・雪山・火山) */
+.stage-tabs {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.stage-tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-height: var(--tap);
+  padding: 6px 2px;
+  border: 2px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--panel);
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+}
+
+.stage-tab.is-on { background: var(--accent); border-color: var(--accent-2); color: var(--on-accent); }
+.stage-tab__name { font-size: 14px; font-weight: 700; }
+.stage-tab__state { font-size: 10px; opacity: .85; white-space: nowrap; }
+
+/* ステージの欄。背景の色でステージの雰囲気を出す(ライト/ダークどちらでも読めるよう薄く重ねる) */
+.stage__enemy { font-size: 48px; line-height: 1.2; text-align: center; }
+.stage__note { margin-top: 6px; }
+.stage--grass   { background-image: linear-gradient(rgba(90, 170, 70, .16), transparent 70%); }
+.stage--sea     { background-image: linear-gradient(rgba(50, 150, 230, .20), transparent 70%); }
+.stage--desert  { background-image: linear-gradient(rgba(230, 170, 60, .20), transparent 70%); }
+.stage--snow    { background-image: linear-gradient(rgba(170, 200, 240, .24), transparent 70%); }
+.stage--volcano { background-image: linear-gradient(rgba(220, 70, 40, .20), transparent 70%); }
+
+.stage-req {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-top: 10px;
+  margin-bottom: 4px;
+  font-size: 13px;
+}
+
+.stage-req__name { flex: 1; }
+.stage-req__num { font-variant-numeric: tabular-nums; }
+.stage-req__mark { font-size: 12px; min-width: 4.5em; text-align: right; }
+.stage-req__mark.is-met   { color: var(--good); }
+.stage-req__mark.is-short { color: var(--bad); }
+
+.pet-list { list-style: none; padding: 0; margin: 8px 0 0; display: flex; flex-direction: column; gap: 8px; }
+.pet-list__name { font-weight: 700; }
+
+/* 戦い */
 .battle { text-align: center; }
 .battle__slime { font-size: 56px; line-height: 1.3; }
 .battle__you { margin-top: 10px; font-size: 13px; }

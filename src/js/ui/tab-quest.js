@@ -1,4 +1,4 @@
-/* 冒険: 草原(スライム戦) / 世界地図(国のクイズ)
+/* 冒険: ステージ(草原→海→砂漠→雪山→火山の敵との戦い) / 世界地図(国のクイズ)
  * 世界地図の出題は内蔵データだけで作るので、APIキーがなくても遊べる。 */
 (function (global) {
   'use strict';
@@ -17,7 +17,8 @@
 
   /** タブを描き直しても残る画面の状態 */
   const state = {
-    screen: 'menu',   // menu | grass | map
+    screen: 'menu',   // menu | battle | map
+    stage: null,      // メニューで選んでいるステージ
     area: 'all',
     mode: 'freq',     // freq(頻出優先) | weak(苦手優先)
     quiz: null,       // {items, index, results, picked}
@@ -130,30 +131,43 @@
 
   // ---------------- メニュー ----------------
 
+  /** 最初に開くステージ: まだクリアしていない遊べるステージのうち、いちばん手前 */
+  function defaultStage(app) {
+    for (const st of R.STAGES) {
+      if (st.ready && !A.stageCleared(app, st.id)) return st.id;
+    }
+    const ready = R.STAGES.filter(function (st) { return st.ready; });
+    return ready[ready.length - 1].id;
+  }
+
+  /** タブの下に出す状態 */
+  function stageLabel(app, st, now) {
+    if (!st.ready) return '準備中';
+    if (A.stageCleared(app, st.id)) return 'クリア済み';
+    return A.stageStatus(app, st.id, now).ok ? '挑戦可' : '未開放';
+  }
+
+  function petOf(id) {
+    return R.PETS.find(function (p) { return p.id === id; });
+  }
+
   function renderMenu(root, app) {
     const now = Date.now();
-    const fresh = A.freshSkillCount(app, now);
-    const check = R.grassCheck({ stats: app.progress.stats, freshCount: fresh });
-    const cleared = !!(app.progress.companions && app.progress.companions.chick);
+    if (!state.stage) state.stage = defaultStage(app);
 
-    const grass = U.el('div', { class: 'card' });
-    grass.appendChild(U.el('div', { class: 'card__head' }, [
-      U.el('div', { class: 'card__title', text: '草原' }),
-      U.el('div', {
-        class: 'card__note',
-        text: cleared ? 'クリア済み' : check.ok ? '挑戦できる' : 'まだ早い',
-      }),
-    ]));
-    grass.appendChild(U.el('p', {
-      text: cleared
-        ? 'スライムを倒して、ひよこが仲間になっています。'
-        : 'スライムがいます。倒すとひよこが仲間になります。',
-    }));
-    grass.appendChild(U.el('button', {
-      class: 'btn btn--primary', text: cleared ? '草原を見る' : '草原へ行く',
-      onclick: function () { state.battle = null; go(app, 'grass'); },
-    }));
-    root.appendChild(grass);
+    const tabs = U.el('div', { class: 'stage-tabs' });
+    for (const st of R.STAGES) {
+      tabs.appendChild(U.el('button', {
+        class: 'stage-tab' + (state.stage === st.id ? ' is-on' : ''),
+        onclick: function () { state.stage = st.id; app.render(); },
+      }, [
+        U.el('span', { class: 'stage-tab__name', text: st.name }),
+        U.el('span', { class: 'stage-tab__state', text: stageLabel(app, st, now) }),
+      ]));
+    }
+    root.appendChild(tabs);
+    root.appendChild(stageCard(app, R.stageById(state.stage), now));
+    root.appendChild(petCard(app));
 
     const geo = A.geoState(app);
     const sum = global.Geo.summary(geo, global.GeoData.countries);
@@ -173,17 +187,96 @@
     root.appendChild(map);
   }
 
-  // ---------------- 草原(スライム戦) ----------------
+  /** ステージの欄。敵・前のステージ・4つの条件・ボタン */
+  function stageCard(app, st, now) {
+    const cleared = A.stageCleared(app, st.id);
+    const check = A.stageStatus(app, st.id, now);
+    const prev = R.prevStage(st.id);
+    const pet = petOf(st.pet);
 
-  function newBattle(app) {
-    const setup = R.battleSetup(app.progress.stats);
+    const card = U.el('div', { class: 'card stage stage--' + st.id });
+    card.appendChild(U.el('div', { class: 'stage__enemy', text: st.icon }));
+    card.appendChild(U.el('div', { class: 'card__title', text: st.name + ' ' + st.enemy }));
+
+    if (cleared) {
+      card.appendChild(U.el('p', { text: st.enemy + 'を倒して、' + pet.name + 'が仲間になっています。' + pet.icon }));
+    } else {
+      card.appendChild(U.el('p', { class: 'quiz-note', text: prev
+        ? '前のステージ「' + prev.name + '」' + (check.prevOk ? 'はクリア済み。' : 'をクリアすると挑戦できる。')
+        : '最初のステージ。' }));
+      card.appendChild(U.el('p', { class: 'quiz-note', text: '倒すと「' + pet.name + '」が仲間になる。' }));
+    }
+
+    // クリアしたあとは条件を出さない(仲間の補正で数字だけ変わって紛らわしいため)
+    for (const it of cleared ? [] : check.items) {
+      const name = it.type === 'stat'
+        ? (app.statById.get(it.stat) || { name: it.stat }).name
+        : 'サビていないスキルの数';
+      const have = it.type === 'stat' ? (Math.floor(it.have * 10) / 10).toFixed(1) : String(it.have);
+      card.appendChild(U.el('div', { class: 'stage-req' }, [
+        U.el('span', { class: 'stage-req__name', text: name }),
+        U.el('span', { class: 'stage-req__num', text: have + ' / ' + it.need }),
+        U.el('span', {
+          class: 'stage-req__mark ' + (it.met ? 'is-met' : 'is-short'),
+          text: it.met ? '達成' : '足りない',
+        }),
+      ]));
+      card.appendChild(U.el('div', { class: 'meter' + (it.type === 'stat' ? ' meter--' + it.stat : '') }, [
+        U.el('div', { class: 'meter__fill', style: 'width:' + Math.min(100, (it.have / it.need) * 100).toFixed(1) + '%' }),
+      ]));
+    }
+    const notes = cleared ? [] : ['サビていないスキル = サビが50%未満の解放済みスキル'];
+    if (check.ease && !cleared) notes.push('仲間のおかげで、必要条件が' + (check.ease === 1 ? '8%' : check.ease + '回ぶん8%ずつ') + 'やさしくなっています。');
+    for (const n of notes) card.appendChild(U.el('p', { class: 'quiz-note stage__note', text: n }));
+
+    let label = '挑む';
+    if (!st.ready) label = '準備中';
+    else if (cleared) label = 'クリア済み';
+    else if (!check.ok) label = 'まだ開いていない';
+    card.appendChild(U.el('button', {
+      class: 'btn btn--primary', text: label,
+      disabled: !st.ready || cleared || !check.ok,
+      onclick: function () { state.battle = newBattle(app, st); go(app, 'battle'); },
+    }));
+    if (!st.ready) {
+      card.appendChild(U.el('p', { class: 'quiz-note stage__note', text: 'このステージは、これからの更新で遊べるようになります。' }));
+    }
+    return card;
+  }
+
+  /** 仲間の欄 */
+  function petCard(app) {
+    const pets = app.progress.companions || {};
+    const card = U.el('div', { class: 'card' });
+    card.appendChild(U.el('div', { class: 'card__title', text: '仲間' }));
+    const owned = R.PETS.filter(function (p) { return pets[p.id]; });
+    if (!owned.length) {
+      card.appendChild(U.el('p', { class: 'quiz-note', text: 'まだ仲間はいません。ステージをクリアすると仲間になります。' }));
+      return card;
+    }
+    const list = U.el('ul', { class: 'pet-list' });
+    for (const p of owned) {
+      list.appendChild(U.el('li', null, [
+        U.el('div', { class: 'pet-list__name', text: p.icon + ' ' + p.name }),
+        U.el('div', { class: 'quiz-note', text: p.text }),
+      ]));
+    }
+    card.appendChild(list);
+    return card;
+  }
+
+  // ---------------- 戦い ----------------
+
+  function newBattle(app, st) {
+    const setup = R.battleSetup(app.progress.stats, st);
     return {
+      stage: st.id,
       playerMax: setup.playerMax,
       playerHp: setup.playerMax,
-      slimeMax: setup.slimeMax,
-      slimeHp: setup.slimeMax,
+      enemyMax: setup.enemyMax,
+      enemyHp: setup.enemyMax,
       atk: setup.atk,
-      log: ['スライムが あらわれた!'],
+      log: [st.enemy + 'が あらわれた!'],
       over: false,
       won: false,
     };
@@ -192,27 +285,27 @@
   function attack(app) {
     const b = state.battle;
     if (!b || b.over) return;
+    const st = R.stageById(b.stage);
     const hit = R.battleHit(b.atk, U.random);
-    b.slimeHp = Math.max(0, b.slimeHp - hit.dmg);
-    b.log.push((hit.crit ? '会心の一撃! ' : '') + 'スライムに ' + hit.dmg + ' のダメージ');
+    b.enemyHp = Math.max(0, b.enemyHp - hit.dmg);
+    b.log.push((hit.crit ? '会心の一撃! ' : '') + st.enemy + 'に ' + hit.dmg + ' のダメージ');
 
-    if (b.slimeHp <= 0) {
+    if (b.enemyHp <= 0) {
       b.over = true;
       b.won = true;
-      b.log.push('スライムを たおした!');
-      const res = A.winGrass(app);
-      b.reward = res;
+      b.log.push(st.enemy + 'を たおした!');
+      b.reward = A.winStage(app, st.id);
       app.render();
       return;
     }
 
-    const back = R.slimeHit(U.random);
+    const back = R.enemyHit(U.random, st);
     b.playerHp = Math.max(0, b.playerHp - back);
-    b.log.push('スライムの こうげき! ' + back + ' のダメージ');
+    b.log.push(st.enemy + 'の こうげき! ' + back + ' のダメージ');
     if (b.playerHp <= 0) {
       b.over = true;
       b.won = false;
-      b.log.push('たいりょくが つきた…… 草原から にげかえった。');
+      b.log.push('たいりょくが つきた…… ' + st.name + 'から にげかえった。');
     }
     app.render();
   }
@@ -226,51 +319,23 @@
     return wrap;
   }
 
-  function renderGrass(root, app) {
-    root.appendChild(U.el('button', {
-      class: 'btn btn--ghost', text: '← 冒険にもどる',
-      onclick: function () { go(app, 'menu'); },
-    }));
-
-    const now = Date.now();
-    const fresh = A.freshSkillCount(app, now);
-    const check = R.grassCheck({ stats: app.progress.stats, freshCount: fresh });
-    const cleared = !!(app.progress.companions && app.progress.companions.chick);
-
-    if (!check.ok && !cleared) {
-      const card = U.el('div', { class: 'card' });
-      card.appendChild(U.el('div', { class: 'card__title', text: 'まだ早い' }));
-      card.appendChild(U.el('p', { text: '足りないもの:' }));
-      const list = U.el('ul');
-      for (const m of check.missing) {
-        list.appendChild(U.el('li', {
-          text: m.type === 'stat'
-            ? (app.statById.get(m.stat) || { name: m.stat }).name + ' が ' + m.have + ' / ' + m.need
-            : 'サビ50%未満のスキルが ' + m.have + ' / ' + m.need + ' 個',
-        }));
-      }
-      card.appendChild(list);
-      root.appendChild(card);
-      return;
-    }
-
-    if (cleared && !state.battle) {
-      const card = U.el('div', { class: 'card' });
-      card.appendChild(U.el('div', { class: 'card__title', text: '草原' }));
-      card.appendChild(U.el('p', { text: 'スライムはもういません。ひよこが仲間について来ています。🐤' }));
-      card.appendChild(U.el('p', { class: 'quiz-note', text: 'ひよこがいると、経験値が1.1倍になり、サビの進みが0.85倍になります。' }));
-      root.appendChild(card);
-      return;
-    }
-
-    if (!state.battle) state.battle = newBattle(app);
+  function renderBattle(root, app) {
     const b = state.battle;
+    if (!b) { go(app, 'menu'); return; }
+    const st = R.stageById(b.stage);
 
-    const card = U.el('div', { class: 'card battle' });
-    card.appendChild(U.el('div', { class: 'card__title', text: 'スライム' }));
-    card.appendChild(U.el('div', { class: 'battle__slime', text: b.won ? '💧' : '🟢' }));
-    card.appendChild(bar('slime', b.slimeHp, b.slimeMax));
-    card.appendChild(U.el('div', { class: 'quiz-note', text: 'スライム ' + b.slimeHp + ' / ' + b.slimeMax }));
+    if (!b.over) {
+      root.appendChild(U.el('button', {
+        class: 'btn btn--ghost', text: '← 冒険にもどる',
+        onclick: function () { state.battle = null; go(app, 'menu'); },
+      }));
+    }
+
+    const card = U.el('div', { class: 'card battle stage--' + st.id });
+    card.appendChild(U.el('div', { class: 'card__title', text: st.name + ' ' + st.enemy }));
+    card.appendChild(U.el('div', { class: 'battle__slime', text: b.won ? '💨' : st.icon }));
+    card.appendChild(bar('slime', b.enemyHp, b.enemyMax));
+    card.appendChild(U.el('div', { class: 'quiz-note', text: st.enemy + ' ' + b.enemyHp + ' / ' + b.enemyMax }));
 
     card.appendChild(U.el('div', { class: 'battle__you', text: 'じぶん ' + b.playerHp + ' / ' + b.playerMax }));
     card.appendChild(bar('you', b.playerHp, b.playerMax));
@@ -285,18 +350,26 @@
         onclick: function () { attack(app); },
       }));
     } else if (b.won) {
+      const pet = petOf(st.pet);
+      const r = b.reward || {};
       card.appendChild(U.el('div', { class: 'notice notice--good' },
-        b.reward && b.reward.first
-          ? 'ひよこが仲間になった! 経験値 +' + b.reward.xp
-          : 'ひよこはもう仲間です。'));
+        r.first
+          ? st.enemy + 'を倒した! 「' + pet.name + '」が仲間になった。' + pet.icon + ' 経験値 +' + r.xp +
+            (r.leveledUp ? ' レベルアップ! Lv.' + r.level : '')
+          : pet.name + 'はもう仲間です。'));
+      card.appendChild(U.el('p', { class: 'quiz-note', text: pet.name + ': ' + pet.text }));
       card.appendChild(U.el('button', {
         class: 'btn', text: '冒険にもどる',
-        onclick: function () { state.battle = null; go(app, 'menu'); },
+        onclick: function () { state.battle = null; state.stage = defaultStage(app); go(app, 'menu'); },
       }));
     } else {
       card.appendChild(U.el('button', {
         class: 'btn btn--primary', text: 'もう一度いどむ',
-        onclick: function () { state.battle = newBattle(app); app.render(); },
+        onclick: function () { state.battle = newBattle(app, st); app.render(); },
+      }));
+      card.appendChild(U.el('button', {
+        class: 'btn', text: '冒険にもどる',
+        onclick: function () { state.battle = null; go(app, 'menu'); },
       }));
     }
     root.appendChild(card);
@@ -527,7 +600,7 @@
   // ---------------- 入口 ----------------
 
   function render(root, app) {
-    if (state.screen === 'grass') return renderGrass(root, app);
+    if (state.screen === 'battle') return renderBattle(root, app);
     if (state.screen === 'map') return renderMap(root, app);
     return renderMenu(root, app);
   }

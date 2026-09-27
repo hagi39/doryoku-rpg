@@ -236,12 +236,16 @@ test('前提が揃うと解放できる', () => {
   eq(Rules.isUnlockable(skill, { math_01: { unlocked: true }, math_03: { unlocked: true } }), false);
 });
 
+const grassStage = Rules.stageById('grass');
+const seaStage = Rules.stageById('sea');
+const shortOf = (check) => check.items.filter((it) => !it.met);
+
 test('草原の入場条件', () => {
-  const okCase = Rules.grassCheck({ stats: { int: 6, str: 4, sta: 2 }, freshCount: 8 });
+  const okCase = Rules.stageCheck(grassStage, { stats: { int: 6, str: 4, sta: 2 }, freshCount: 8 });
   eq(okCase.ok, true);
-  const ng = Rules.grassCheck({ stats: { int: 5, str: 4, sta: 2 }, freshCount: 3 });
+  const ng = Rules.stageCheck(grassStage, { stats: { int: 5, str: 4, sta: 2 }, freshCount: 3 });
   eq(ng.ok, false);
-  eq(ng.missing.length, 2);
+  eq(shortOf(ng).length, 2);
 });
 
 // ---------------- 連続日数 ----------------
@@ -1337,14 +1341,14 @@ test('草原の戦い: パラメーターが上がっても、ターン数が一
     const trials = 300;
     for (let t = 0; t < trials; t++) {
       const setup = Rules.battleSetup(stats);
-      let slime = setup.slimeMax;
+      let slime = setup.enemyMax;
       let hp = setup.playerMax;
       let turns = 0;
       for (;;) {
         turns++;
         slime -= Rules.battleHit(setup.atk, rand).dmg;
         if (slime <= 0) break;
-        hp -= Rules.slimeHit(rand);
+        hp -= Rules.enemyHit(rand);
         if (hp <= 0) { lost++; break; }
         ok(turns < 100, `${label}: 終わらない`);
       }
@@ -1363,8 +1367,8 @@ test('草原の戦い: 会心が出ても一撃では倒せない', () => {
     const setup = Rules.battleSetup(stats);
     // 一撃の最大 = 攻撃力 × 1.2 を四捨五入 × 会心2倍
     const maxHit = Math.round(setup.atk * 1.2) * Rules.C.CRIT_MULT;
-    ok(maxHit < setup.slimeMax,
-      `一撃(${maxHit})でスライム(${setup.slimeMax})が倒せてしまう`);
+    ok(maxHit < setup.enemyMax,
+      `一撃(${maxHit})でスライム(${setup.enemyMax})が倒せてしまう`);
   }
 });
 
@@ -1470,11 +1474,171 @@ test('草原: 倒すとひよこが仲間になり、経験値は初回だけ', 
 });
 
 test('草原の入場条件: 足りないものが並ぶ', () => {
-  const none = Rules.grassCheck({ stats: { int: 0, str: 0, sta: 0 }, freshCount: 0 });
+  const none = Rules.stageCheck(grassStage, { stats: { int: 0, str: 0, sta: 0 }, freshCount: 0 });
   eq(none.ok, false, '条件なし:');
-  eq(none.missing.length, 4, '足りないもの(知力・筋力・体力・スキル数):');
-  const okCheck = Rules.grassCheck({ stats: { int: 6, str: 4, sta: 2 }, freshCount: 8 });
+  eq(shortOf(none).length, 4, '足りないもの(知力・筋力・体力・スキル数):');
+  const okCheck = Rules.stageCheck(grassStage, { stats: { int: 6, str: 4, sta: 2 }, freshCount: 8 });
   eq(okCheck.ok, true, 'ちょうど条件を満たす:');
+});
+
+// ---------------- 海(ステージ) ----------------
+
+test('ステージ: 草原→海→砂漠→雪山→火山の順で、条件は Artifact 版と同じ', () => {
+  eq(Rules.STAGES.map((st) => st.id).join(','), 'grass,sea,desert,snow,volcano', '順番:');
+  const table = {
+    sea: [15, 7, 5, 16], desert: [30, 13, 10, 30], snow: [50, 20, 16, 48], volcano: [75, 28, 24, 70],
+  };
+  for (const id of Object.keys(table)) {
+    const st = Rules.stageById(id);
+    eq([st.req.int, st.req.str, st.req.sta, st.fresh].join(','), table[id].join(','), id + ':');
+  }
+  eq(Rules.prevStage('grass'), null, '草原の前はない:');
+  eq(Rules.prevStage('sea').id, 'grass', '海の前は草原:');
+  // 遊べるのは草原と海だけ。砂漠から先は「準備中」
+  eq(Rules.STAGES.filter((st) => st.ready).map((st) => st.id).join(','), 'grass,sea', '遊べるステージ:');
+  // ペットの名前(遊んでいる人の答えのとおり)
+  const pets = Rules.STAGES.map((st) => Rules.PETS.find((p) => p.id === st.pet).name);
+  eq(pets.join(','), 'ひよこ,カメ,フェネック,ユキウサギ,ミニドラゴン', 'ペット:');
+});
+
+test('海の入場条件: 前のステージ・パラメーター・スキル数がそれぞれ効く', () => {
+  const enough = { stats: { int: 15, str: 7, sta: 5 }, freshCount: 16, prevCleared: true };
+  eq(Rules.stageCheck(seaStage, enough).ok, true, 'ちょうど満たす:');
+
+  const noPrev = Rules.stageCheck(seaStage, Object.assign({}, enough, { prevCleared: false }));
+  eq(noPrev.ok, false, '草原が未クリア:');
+  eq(noPrev.prevOk, false, '草原が未クリア(prevOk):');
+  eq(shortOf(noPrev).length, 0, '数値は足りている:');
+
+  const lowInt = Rules.stageCheck(seaStage, Object.assign({}, enough, { stats: { int: 14.9, str: 7, sta: 5 } }));
+  eq(lowInt.ok, false, '知力14.9:');
+  eq(shortOf(lowInt)[0].stat, 'int', '足りないのは知力:');
+
+  const lowFresh = Rules.stageCheck(seaStage, Object.assign({}, enough, { freshCount: 15 }));
+  eq(lowFresh.ok, false, 'スキル15個:');
+  eq(shortOf(lowFresh)[0].type, 'fresh', '足りないのはスキル数:');
+});
+
+test('カメ: 冒険の必要条件が8%やさしくなる(×0.92を切り上げ、2匹なら2回かける)', () => {
+  // Artifact 版のスクショで、火山のスキル数70がカメ+ユキウサギで60になっていた
+  eq(Rules.easedNeed(70, 2), 60, '70 → 2匹:');
+  eq(Rules.easedNeed(70, 1), 65, '70 → 1匹:');
+  eq(Rules.easedNeed(70, 0), 70, 'ペットなし:');
+  eq(Rules.easedNeed(15, 1), 14, '15 → 1匹(13.8を切り上げ):');
+  // 25×0.92 は計算上 23.000000000000004 になる。誤差で24にしない
+  eq(Rules.easedNeed(25, 1), 23, '25 → 1匹:');
+
+  eq(Rules.easeCount({ chick: true }), 0, 'ひよこは条件に効かない:');
+  eq(Rules.easeCount({ chick: true, turtle: true }), 1, 'カメ:');
+  eq(Rules.easeCount({ turtle: true, snowhare: true }), 2, 'カメ+ユキウサギ:');
+
+  const desert = Rules.stageById('desert');
+  const withTurtle = Rules.stageCheck(desert, {
+    stats: { int: 28, str: 12, sta: 10 }, freshCount: 28, prevCleared: true,
+    companions: { chick: true, turtle: true },
+  });
+  eq(withTurtle.items.map((it) => it.need).join(','), '28,12,10,28', '砂漠 30/13/10/30 → カメ:');
+  eq(withTurtle.ok, true, 'カメがいれば届く:');
+  const without = Rules.stageCheck(desert, {
+    stats: { int: 28, str: 12, sta: 10 }, freshCount: 28, prevCleared: true, companions: { chick: true },
+  });
+  eq(without.ok, false, 'カメがいなければ届かない:');
+});
+
+test('海の戦い: 条件ぴったりなら手ごわく(勝率7〜9割)、少し育てれば勝てる', () => {
+  let seed = 20260928;
+  const rand = () => { seed = (seed * 1103515245 + 12345) % 2147483648; return seed / 2147483648; };
+  const run = (stats) => {
+    const trials = 3000;
+    let win = 0; let minTurns = Infinity; let maxTurns = 0;
+    for (let t = 0; t < trials; t++) {
+      const setup = Rules.battleSetup(stats, seaStage);
+      let enemy = setup.enemyMax; let hp = setup.playerMax; let turns = 0;
+      for (;;) {
+        turns++;
+        enemy -= Rules.battleHit(setup.atk, rand).dmg;
+        if (enemy <= 0) { win++; break; }
+        hp -= Rules.enemyHit(rand, seaStage);
+        if (hp <= 0) break;
+      }
+      minTurns = Math.min(minTurns, turns); maxTurns = Math.max(maxTurns, turns);
+    }
+    return { rate: win / trials, minTurns, maxTurns };
+  };
+  const entry = run({ int: 15, str: 7, sta: 5 });
+  ok(entry.rate >= 0.7 && entry.rate <= 0.9, `条件ぴったりの勝率 ${(entry.rate * 100).toFixed(0)}%`);
+  ok(entry.minTurns >= 4, `短すぎる(最小 ${entry.minTurns} ターン)`);
+  ok(entry.maxTurns <= 14, `長すぎる(最大 ${entry.maxTurns} ターン)`);
+  const grown = run({ int: 20, str: 10, sta: 8 });
+  ok(grown.rate >= 0.98, `少し育てた勝率 ${(grown.rate * 100).toFixed(1)}%`);
+
+  // 会心でも一撃では倒せない
+  for (const stats of [{ int: 15, str: 7, sta: 5 }, { int: 200, str: 150, sta: 120 }]) {
+    const setup = Rules.battleSetup(stats, seaStage);
+    const maxHit = Math.round(setup.atk * 1.2) * Rules.C.CRIT_MULT;
+    ok(maxHit < setup.enemyMax, `一撃(${maxHit})でクラゲ(${setup.enemyMax})が倒せてしまう`);
+  }
+  // 反撃は3〜6
+  eq(Rules.enemyHit(() => 0, seaStage), 3, '反撃の最小:');
+  eq(Rules.enemyHit(() => 0.999, seaStage), 6, '反撃の最大:');
+});
+
+test('スライム戦の数値は変わっていない', () => {
+  const setup = Rules.battleSetup({ int: 6, str: 4, sta: 2 });
+  eq(setup.atk, 7, '攻撃力:');
+  eq(setup.enemyMax, 20 + 7 * 6, 'スライムのHP:');
+  eq(setup.playerMax, 24 + 4 * 3, '自分のHP:');
+  eq(Rules.battleSetup({ int: 6, str: 4, sta: 2 }, grassStage).enemyMax, setup.enemyMax, '草原を渡しても同じ:');
+  eq(Rules.enemyHit(() => 0), 1, 'スライムの反撃の最小:');
+  eq(Rules.enemyHit(() => 0.999), 4, 'スライムの反撃の最大:');
+  eq(grassStage.xp, 60, '草原の経験値:');
+});
+
+test('海: 倒すとカメとクリア記録と120xp、2回目は何も増えない', () => {
+  const app = makeApp(U.deepClone(data));
+  const now = Date.UTC(2026, 8, 28);
+  Actions.winGrass(app, { now });
+  const xp0 = app.progress.totalXp;
+  eq(Actions.stageCleared(app, 'sea'), false, 'まだ海はクリアしていない:');
+
+  const first = Actions.winStage(app, 'sea', { now });
+  eq(first.first, true, '初回:');
+  eq(first.xp, 120, '初回の経験値:');
+  eq(app.progress.totalXp, xp0 + 120, '経験値の合計:');
+  eq(app.progress.companions.turtle, true, 'カメ:');
+  eq(app.progress.stageClears.sea, now, 'クリア記録:');
+  eq(app.progress.testLog[0].type, 'stage', '履歴:');
+  eq(app.progress.testLog[0].stage, 'sea', '履歴のステージ:');
+
+  const second = Actions.winStage(app, 'sea', { now: now + 1000 });
+  eq(second.first, false, '2回目:');
+  eq(second.xp, 0, '2回目の経験値:');
+  eq(app.progress.stageClears.sea, now, 'クリア記録は最初の時刻のまま:');
+});
+
+test('ステージの状態: 草原をクリアするまで海は開かない', () => {
+  const app = makeApp(U.deepClone(data));
+  app.progress.stats = { int: 20, str: 10, sta: 8 };
+  const now = Date.now();
+  // サビていないスキルを16個にする
+  let n = 0;
+  for (const skill of app.treeData.skills) {
+    if ((skill.requires || []).length) continue;
+    Actions.unlockSkill(app, skill.id, 'self', { now });
+    if (++n >= 16) break;
+  }
+  app.progress.stats = { int: 20, str: 10, sta: 8 };
+  eq(Actions.freshSkillCount(app, now), 16, 'サビていないスキル:');
+  eq(Actions.stageStatus(app, 'sea', now).ok, false, '草原の前:');
+  Actions.winGrass(app, { now });
+  eq(Actions.stageStatus(app, 'sea', now).ok, true, '草原のあと:');
+});
+
+test('ひよこを切り替えても、草原のクリア記録は消えない', () => {
+  const app = makeApp(U.deepClone(data));
+  Actions.winGrass(app, { now: 5 });
+  app.progress.companions.chick = false; // 設定タブの「ひよこ切替」
+  eq(Actions.stageCleared(app, 'grass'), true, 'クリア記録:');
 });
 
 
@@ -1532,6 +1696,81 @@ test('P7 容量: 最大に近い進捗でも、目安5MBの半分におさまる
   ok(mb < 2.5, `最大構成が大きすぎます: ${mb.toFixed(2)} MB`);
   // 上限を増やす変更が入ったら気づけるよう、下限も見ておく(想定より小さければ計算漏れ)
   ok(mb > 1.5, `想定より小さすぎます(積み忘れ?): ${mb.toFixed(2)} MB`);
+});
+
+// ---------------- セーブの互換(海を足す前の ef299b3 のコードで作ったセーブ) ----------------
+
+const FIX = join(dirname(fileURLToPath(import.meta.url)), 'fixtures');
+const oldProgressText = readFileSync(join(FIX, 'progress-ef299b3.json'), 'utf8');
+const oldBackupText = readFileSync(join(FIX, 'backup-ef299b3.json'), 'utf8');
+
+/** 古いセーブの項目が、読み込んだあとも1つも変わっていないこと */
+function sameAsOld(loaded, old, label, skip) {
+  for (const key of Object.keys(old)) {
+    if ((skip || []).includes(key)) continue;
+    if (key === 'companions') continue; // 足した項目があるので下で個別に見る
+    if (key === 'dataVer') continue;    // 読み込むたびに今のツリーデータの ver が入る(前からの動き)
+    eq(JSON.stringify(loaded[key]), JSON.stringify(old[key]), label + key + ':');
+  }
+  eq(loaded.dataVer, data.ver, label + 'dataVer:');
+  eq(loaded.companions.chick, old.companions.chick, label + 'ひよこ:');
+}
+
+test('セーブの互換: 海を足す前のセーブがそのまま読める', () => {
+  mem.clear();
+  mem.set('doryoku-rpg/progress', oldProgressText);
+  const old = JSON.parse(oldProgressText);
+  const loaded = Store.loadProgress(data);
+  sameAsOld(loaded, old, '');
+  eq(loaded.companions.turtle, false, 'カメはまだいない:');
+  eq(loaded.stageClears.grass, 0, 'ひよこがいるので草原はクリア済み(時刻不明=0):');
+  eq(loaded.stageClears.sea, undefined, '海は未クリア:');
+
+  // 読み込んだあとの app で、草原はクリア済み・海はまだ
+  const app = makeApp(U.deepClone(data));
+  app.progress = loaded;
+  eq(Actions.stageCleared(app, 'grass'), true, '草原:');
+  eq(Actions.stageCleared(app, 'sea'), false, '海:');
+  // 草原を二重にクリアしても経験値は入らない
+  eq(Actions.winGrass(app).xp, 0, '草原の再クリアで経験値が増えない:');
+
+  // 保存し直しても、古い項目は変わらない
+  Store.saveProgress(loaded);
+  // updatedAt は保存した時刻に変わる
+  sameAsOld(Store.loadProgress(data), old, '保存し直し後 ', ['updatedAt']);
+});
+
+test('セーブの互換: 海を足す前のバックアップがそのまま読める', () => {
+  mem.clear();
+  const read = Store.importBackup(oldBackupText);
+  eq(read.ok, true, '読み込み: ' + (read.error || ''));
+  Store.applyBackup(read.backup);
+  const loaded = Store.loadProgress(data);
+  sameAsOld(loaded, JSON.parse(oldBackupText).progress, 'バックアップ ');
+  eq(loaded.companions.turtle, false, 'カメ:');
+  eq(loaded.stageClears.grass, 0, '草原:');
+});
+
+test('セーブの互換: ひよこがいないセーブでは、草原は未クリアのまま', () => {
+  const old = JSON.parse(oldProgressText);
+  old.companions = { chick: false };
+  mem.clear();
+  mem.set('doryoku-rpg/progress', JSON.stringify(old));
+  const loaded = Store.loadProgress(data);
+  eq(loaded.stageClears.grass, undefined, '草原:');
+});
+
+test('セーブの互換: 海をクリアしたセーブを保存・読み直ししても残る', () => {
+  mem.clear();
+  mem.set('doryoku-rpg/progress', oldProgressText);
+  const app = makeApp(U.deepClone(data));
+  app.progress = Store.loadProgress(data);
+  Actions.winStage(app, 'sea', { now: 1234 });
+  Store.saveProgress(app.progress);
+  const back = Store.loadProgress(data);
+  eq(back.companions.turtle, true, 'カメ:');
+  eq(back.stageClears.sea, 1234, '海のクリア記録:');
+  eq(back.stageClears.grass, 0, '草原のクリア記録:');
 });
 
 test('P7 受け渡し: バックアップの書き出し→読み込みで進捗が戻る', () => {

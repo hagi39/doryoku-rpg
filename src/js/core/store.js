@@ -69,7 +69,8 @@
       diagnoses: {},       // treeId → 最後の診断結果
       materials: {},       // skillId → 教材
       geo: { countries: {}, areasCleared: [] },
-      companions: { chick: false },
+      companions: { chick: false, turtle: false },
+      stageClears: {},     // ステージid → 初めてクリアした時刻(ペットとは別に持つ。コインをさかのぼって渡すときに使う)
       daily: {},           // 「1日1回だけ経験値」の判定用
       createdAt: now,
       updatedAt: now,
@@ -137,7 +138,11 @@
     out.stats = Object.assign({ int: 0, str: 0, sta: 0 }, saved.stats || {});
     out.streak = Object.assign({ count: 0, lastDate: null }, saved.streak || {});
     out.geo = Object.assign({ countries: {}, areasCleared: [] }, saved.geo || {});
-    out.companions = Object.assign({ chick: false }, saved.companions || {});
+    out.companions = Object.assign({ chick: false, turtle: false }, saved.companions || {});
+    out.stageClears = saved.stageClears && typeof saved.stageClears === 'object'
+      ? Object.assign({}, saved.stageClears) : {};
+    // クリア記録ができる前のセーブは、ひよこがいれば草原をクリアしている(時刻は分からないので0)
+    if (out.companions.chick && typeof out.stageClears.grass !== 'number') out.stageClears.grass = 0;
     out.skills = saved.skills && typeof saved.skills === 'object' ? saved.skills : {};
     out.logs = Array.isArray(saved.logs) ? saved.logs : [];
     out.reviewList = Array.isArray(saved.reviewList) ? saved.reviewList : [];
