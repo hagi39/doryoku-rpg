@@ -421,7 +421,37 @@
   }
 
   /**
-   * ステージの敵を倒した。ペットが必ず仲間になり、初回だけ経験値とクリア記録が入る。
+   * クリアしたステージのコインを渡す。渡したら coinPaid に印をつけるので、何度呼んでも1回分だけ。
+   * @returns {number} 今回渡した枚数(渡し済み・未クリアなら0)
+   */
+  function payStageCoins(app, stageId) {
+    const p = app.progress;
+    const stage = R.stageById(stageId);
+    if (!stage || !stage.coins || !stageCleared(app, stageId)) return 0;
+    if (!p.coinPaid) p.coinPaid = {};
+    if (p.coinPaid[stageId]) return 0;
+    p.coinPaid[stageId] = true;
+    p.coins = (p.coins || 0) + stage.coins;
+    return stage.coins;
+  }
+
+  /**
+   * コインができる前にクリアしたステージの分を、さかのぼって渡す(起動時・バックアップ読み込み時)。
+   * @returns {{coins:number, stages:string[]}} 渡した合計と、どのステージの分か
+   */
+  function claimPastStageCoins(app) {
+    let coins = 0;
+    const stages = [];
+    for (const st of R.STAGES) {
+      const got = payStageCoins(app, st.id);
+      if (got) { coins += got; stages.push(st.id); }
+    }
+    if (coins) app.save();
+    return { coins: coins, stages: stages };
+  }
+
+  /**
+   * ステージの敵を倒した。ペットが必ず仲間になり、初回だけ経験値・コイン・クリア記録が入る。
    * クリアしたステージでは画面から再戦できないが、2回目が来ても二重には入らない。
    */
   function winStage(app, stageId, opts) {
@@ -432,15 +462,17 @@
     const first = !stageCleared(app, stageId);
     app.progress.companions[stage.pet] = true;
     let gain = { xp: 0, level: R.levelOf(app.progress.totalXp), leveledUp: false };
+    let coins = 0;
     if (first) {
       app.progress.stageClears[stageId] = now;
       gain = gainXp(app, stage.xp);
+      coins = payStageCoins(app, stageId);
       pushTestLog(app, stageId === 'grass'
         ? { at: now, type: 'grass', xp: gain.xp }
         : { at: now, type: 'stage', stage: stageId, xp: gain.xp });
     }
     app.save();
-    return { first: first, pet: stage.pet, xp: gain.xp, level: gain.level, leveledUp: gain.leveledUp };
+    return { first: first, pet: stage.pet, xp: gain.xp, coins: coins, level: gain.level, leveledUp: gain.leveledUp };
   }
 
   /** スライムを倒した。ひよこが仲間になり、経験値が入る(2回目からは経験値なし)。 */
@@ -502,7 +534,8 @@
     recordLog, unlockSkill, freshSkillCount, applyPartialRecovery,
     finishUnlockTest, finishReviewTest, finishDiagnosis, saveMistakes,
     gainXp, saveMaterial, deleteMaterial, finishMaterialCheck,
-    stageCleared, stageStatus, winStage, winGrass, finishGeoQuiz, geoState,
+    stageCleared, stageStatus, winStage, winGrass, payStageCoins, claimPastStageCoins,
+    finishGeoQuiz, geoState,
     finishReviewSession, removeReviewItem, removeClearedReviewItems,
   };
 })(typeof window !== 'undefined' ? window : globalThis);

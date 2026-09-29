@@ -1,0 +1,2892 @@
+{
+ "app": "努力RPG",
+ "backupVer": 1,
+ "exportedAt": "2026-09-28T12:00:00.000Z",
+ "progress": {
+  "ver": 1,
+  "dataVer": 1,
+  "totalXp": 304,
+  "stats": {
+   "int": 19.5,
+   "str": 4,
+   "sta": 2
+  },
+  "streak": {
+   "count": 1,
+   "lastDate": "2026-09-26"
+  },
+  "skills": {
+   "math_01": {
+    "unlocked": true,
+    "unlockedAt": 1790071200000,
+    "polishCount": 2,
+    "polishedAt": 1790416800000,
+    "unlockedBy": "self"
+   },
+   "math_02": {
+    "unlocked": true,
+    "unlockedAt": 1790071200000,
+    "polishCount": 2,
+    "polishedAt": 1790416800000,
+    "unlockedBy": "self"
+   },
+   "math_08": {
+    "unlocked": true,
+    "unlockedAt": 1790071200000,
+    "polishCount": 2,
+    "polishedAt": 1790416800000,
+    "unlockedBy": "self"
+   },
+   "math_10": {
+    "unlocked": true,
+    "unlockedAt": 1790071200000,
+    "polishCount": 2,
+    "polishedAt": 1790416800000,
+    "unlockedBy": "self"
+   },
+   "phys_01": {
+    "unlocked": true,
+    "unlockedAt": 1790071200000,
+    "polishCount": 2,
+    "polishedAt": 1790416800000,
+    "unlockedBy": "self"
+   },
+   "phys_03": {
+    "unlocked": true,
+    "unlockedAt": 1790071200000,
+    "polishCount": 2,
+    "polishedAt": 1790416800000,
+    "unlockedBy": "self"
+   },
+   "chem_01": {
+    "unlocked": true,
+    "unlockedAt": 1790071200000,
+    "polishCount": 2,
+    "polishedAt": 1790416800000,
+    "unlockedBy": "self"
+   },
+   "eng_01": {
+    "unlocked": true,
+    "unlockedAt": 1790071200000,
+    "polishCount": 2,
+    "polishedAt": 1790416800000,
+    "unlockedBy": "self"
+   },
+   "eng_14": {
+    "unlocked": true,
+    "unlockedAt": 1790071200000,
+    "polishCount": 2,
+    "polishedAt": 1790416800000,
+    "unlockedBy": "self"
+   },
+   "kobun_01": {
+    "unlocked": true,
+    "unlockedAt": 1790071200000,
+    "polishCount": 2,
+    "polishedAt": 1790416800000,
+    "unlockedBy": "self"
+   },
+   "kobun_02": {
+    "unlocked": true,
+    "unlockedAt": 1790071200000,
+    "polishCount": 2,
+    "polishedAt": 1790416800000,
+    "unlockedBy": "self"
+   },
+   "kanbun_01": {
+    "unlocked": true,
+    "unlockedAt": 1790071200000,
+    "polishCount": 2,
+    "polishedAt": 1790416800000,
+    "unlockedBy": "self"
+   },
+   "geo_01": {
+    "unlocked": true,
+    "unlockedAt": 1790071200000,
+    "polishCount": 1,
+    "polishedAt": 1790071200000,
+    "unlockedBy": "self"
+   },
+   "geo_02": {
+    "unlocked": true,
+    "unlockedAt": 1790071200000,
+    "polishCount": 1,
+    "polishedAt": 1790071200000,
+    "unlockedBy": "self"
+   },
+   "up_01": {
+    "unlocked": true,
+    "unlockedAt": 1790071200000,
+    "polishCount": 1,
+    "polishedAt": 1790071200000,
+    "unlockedBy": "self"
+   },
+   "up_05": {
+    "unlocked": true,
+    "unlockedAt": 1790071200000,
+    "polishCount": 1,
+    "polishedAt": 1790071200000,
+    "unlockedBy": "self"
+   },
+   "low_01": {
+    "unlocked": true,
+    "unlockedAt": 1790071200000,
+    "polishCount": 1,
+    "polishedAt": 1790071200000,
+    "unlockedBy": "self"
+   },
+   "core_01": {
+    "unlocked": true,
+    "unlockedAt": 1790071200000,
+    "polishCount": 1,
+    "polishedAt": 1790071200000,
+    "unlockedBy": "self"
+   },
+   "core_03": {
+    "unlocked": true,
+    "unlockedAt": 1790071200000,
+    "polishCount": 1,
+    "polishedAt": 1790071200000,
+    "unlockedBy": "self"
+   },
+   "end_01": {
+    "unlocked": true,
+    "unlockedAt": 1790071200000,
+    "polishCount": 1,
+    "polishedAt": 1790071200000,
+    "unlockedBy": "self"
+   }
+  },
+  "logs": [
+   {
+    "id": "log_1790416800000_495",
+    "at": 1790416800000,
+    "date": "2026-09-26",
+    "skillId": "kanbun_01",
+    "treeId": "kanbun",
+    "kindId": "practice",
+    "usesIds": [],
+    "note": "",
+    "xp": 8,
+    "crit": false,
+    "gains": {
+     "int": 0.3
+    },
+    "rustBefore": 0
+   },
+   {
+    "id": "log_1790416800000_63",
+    "at": 1790416800000,
+    "date": "2026-09-26",
+    "skillId": "kobun_02",
+    "treeId": "kobun",
+    "kindId": "practice",
+    "usesIds": [],
+    "note": "",
+    "xp": 10,
+    "crit": false,
+    "gains": {
+     "int": 0.38
+    },
+    "rustBefore": 0
+   },
+   {
+    "id": "log_1790416800000_809",
+    "at": 1790416800000,
+    "date": "2026-09-26",
+    "skillId": "kobun_01",
+    "treeId": "kobun",
+    "kindId": "practice",
+    "usesIds": [],
+    "note": "",
+    "xp": 8,
+    "crit": false,
+    "gains": {
+     "int": 0.31
+    },
+    "rustBefore": 0
+   },
+   {
+    "id": "log_1790416800000_673",
+    "at": 1790416800000,
+    "date": "2026-09-26",
+    "skillId": "eng_14",
+    "treeId": "eng",
+    "kindId": "practice",
+    "usesIds": [],
+    "note": "",
+    "xp": 8,
+    "crit": true,
+    "gains": {
+     "int": 0.62
+    },
+    "rustBefore": 0
+   },
+   {
+    "id": "log_1790416800000_30",
+    "at": 1790416800000,
+    "date": "2026-09-26",
+    "skillId": "eng_01",
+    "treeId": "eng",
+    "kindId": "practice",
+    "usesIds": [],
+    "note": "",
+    "xp": 10,
+    "crit": false,
+    "gains": {
+     "int": 0.39
+    },
+    "rustBefore": 0
+   },
+   {
+    "id": "log_1790416800000_59",
+    "at": 1790416800000,
+    "date": "2026-09-26",
+    "skillId": "chem_01",
+    "treeId": "chem",
+    "kindId": "practice",
+    "usesIds": [],
+    "note": "",
+    "xp": 10,
+    "crit": false,
+    "gains": {
+     "int": 0.4
+    },
+    "rustBefore": 0
+   },
+   {
+    "id": "log_1790416800000_193",
+    "at": 1790416800000,
+    "date": "2026-09-26",
+    "skillId": "phys_03",
+    "treeId": "phys",
+    "kindId": "practice",
+    "usesIds": [],
+    "note": "",
+    "xp": 12,
+    "crit": false,
+    "gains": {
+     "int": 0.48
+    },
+    "rustBefore": 0
+   },
+   {
+    "id": "log_1790416800000_997",
+    "at": 1790416800000,
+    "date": "2026-09-26",
+    "skillId": "phys_01",
+    "treeId": "phys",
+    "kindId": "practice",
+    "usesIds": [],
+    "note": "",
+    "xp": 10,
+    "crit": true,
+    "gains": {
+     "int": 0.82
+    },
+    "rustBefore": 0
+   },
+   {
+    "id": "log_1790416800000_915",
+    "at": 1790416800000,
+    "date": "2026-09-26",
+    "skillId": "math_10",
+    "treeId": "math",
+    "kindId": "practice",
+    "usesIds": [],
+    "note": "",
+    "xp": 12,
+    "crit": false,
+    "gains": {
+     "int": 0.5
+    },
+    "rustBefore": 0
+   },
+   {
+    "id": "log_1790416800000_529",
+    "at": 1790416800000,
+    "date": "2026-09-26",
+    "skillId": "math_08",
+    "treeId": "math",
+    "kindId": "practice",
+    "usesIds": [],
+    "note": "",
+    "xp": 12,
+    "crit": false,
+    "gains": {
+     "int": 0.5
+    },
+    "rustBefore": 0
+   },
+   {
+    "id": "log_1790416800000_987",
+    "at": 1790416800000,
+    "date": "2026-09-26",
+    "skillId": "math_02",
+    "treeId": "math",
+    "kindId": "practice",
+    "usesIds": [],
+    "note": "",
+    "xp": 10,
+    "crit": false,
+    "gains": {
+     "int": 0.42
+    },
+    "rustBefore": 0
+   },
+   {
+    "id": "log_1790416800000_299",
+    "at": 1790416800000,
+    "date": "2026-09-26",
+    "skillId": "math_01",
+    "treeId": "math",
+    "kindId": "practice",
+    "usesIds": [],
+    "note": "",
+    "xp": 10,
+    "crit": false,
+    "gains": {
+     "int": 0.43
+    },
+    "rustBefore": 0
+   }
+  ],
+  "reviewList": [],
+  "testLog": [
+   {
+    "at": 1790600000000,
+    "type": "stage",
+    "stage": "sea",
+    "xp": 120
+   },
+   {
+    "at": 1790503200000,
+    "type": "geo",
+    "valid": 2,
+    "correct": 1,
+    "cleared": [],
+    "xp": 4
+   },
+   {
+    "at": 1790330400000,
+    "type": "grass",
+    "xp": 60
+   }
+  ],
+  "diagnoses": {},
+  "materials": {},
+  "geo": {
+   "countries": {
+    "jp": {
+     "asked": 1,
+     "wrong": 0,
+     "streak": 1,
+     "byType": {}
+    },
+    "cn": {
+     "asked": 1,
+     "wrong": 1,
+     "streak": 0,
+     "byType": {
+      "capital": 1
+     }
+    }
+   },
+   "areasCleared": []
+  },
+  "companions": {
+   "chick": true,
+   "turtle": true
+  },
+  "stageClears": {
+   "grass": 0,
+   "sea": 1790600000000
+  },
+  "daily": {},
+  "createdAt": 1789639200000,
+  "updatedAt": 1790600000000
+ },
+ "treeData": {
+  "ver": 1,
+  "stats": [
+   {
+    "id": "int",
+    "name": "知力",
+    "color": "int"
+   },
+   {
+    "id": "str",
+    "name": "筋力",
+    "color": "str"
+   },
+   {
+    "id": "sta",
+    "name": "体力",
+    "color": "sta"
+   }
+  ],
+  "kinds": [
+   {
+    "id": "new",
+    "name": "新しい挑戦",
+    "weight": 1.5
+   },
+   {
+    "id": "practice",
+    "name": "練習",
+    "weight": 1
+   },
+   {
+    "id": "review",
+    "name": "復習のみ",
+    "weight": 0.5
+   }
+  ],
+  "categories": [
+   {
+    "id": "study",
+    "name": "勉強",
+    "test": true
+   },
+   {
+    "id": "workout",
+    "name": "筋トレ",
+    "test": false
+   }
+  ],
+  "trees": [
+   {
+    "id": "math",
+    "category": "study",
+    "name": "数学",
+    "weights": {
+     "int": 1
+    },
+    "hint": "高校数学I・A・II・B・III。計算過程より考え方の理解を重視して出題する。"
+   },
+   {
+    "id": "phys",
+    "category": "study",
+    "name": "物理",
+    "weights": {
+     "int": 1
+    },
+    "hint": "高校物理基礎・物理。公式の暗記ではなく、現象と式の対応を問う。"
+   },
+   {
+    "id": "chem",
+    "category": "study",
+    "name": "化学",
+    "weights": {
+     "int": 1
+    },
+    "hint": "高校化学基礎・化学。理論・無機・有機。計算は有効数字2桁で扱う。"
+   },
+   {
+    "id": "eng",
+    "category": "study",
+    "name": "英語",
+    "weights": {
+     "int": 1
+    },
+    "hint": "高校英語。文法は用法の使い分け、読解は構造把握を問う。"
+   },
+   {
+    "id": "kobun",
+    "category": "study",
+    "name": "古文",
+    "weights": {
+     "int": 1
+    },
+    "hint": "高校古文。文法は識別問題を中心に、読解は口語訳で確認する。"
+   },
+   {
+    "id": "kanbun",
+    "category": "study",
+    "name": "漢文",
+    "weights": {
+     "int": 1
+    },
+    "hint": "高校漢文。句形の意味と書き下しを中心に問う。"
+   },
+   {
+    "id": "geo",
+    "category": "study",
+    "name": "地理",
+    "weights": {
+     "int": 1
+    },
+    "hint": "高校地理総合・地理探究。用語の暗記より因果関係の説明を重視する。"
+   },
+   {
+    "id": "up",
+    "category": "workout",
+    "name": "上半身",
+    "weights": {
+     "str": 1
+    },
+    "hint": ""
+   },
+   {
+    "id": "low",
+    "category": "workout",
+    "name": "下半身",
+    "weights": {
+     "str": 0.7,
+     "sta": 0.3
+    },
+    "hint": ""
+   },
+   {
+    "id": "core",
+    "category": "workout",
+    "name": "体幹",
+    "weights": {
+     "str": 0.5,
+     "sta": 0.5
+    },
+    "hint": ""
+   },
+   {
+    "id": "end",
+    "category": "workout",
+    "name": "持久力",
+    "weights": {
+     "sta": 1
+    },
+    "hint": ""
+   }
+  ],
+  "skills": [
+   {
+    "id": "math_01",
+    "tree": "math",
+    "name": "式の展開と因数分解",
+    "desc": "多項式の展開公式と因数分解の基本パターン",
+    "requires": [],
+    "uses": [],
+    "xp": 10,
+    "reward": {
+     "int": 1
+    }
+   },
+   {
+    "id": "math_02",
+    "tree": "math",
+    "name": "実数と平方根",
+    "desc": "有理数・無理数、根号の計算、絶対値",
+    "requires": [],
+    "uses": [],
+    "xp": 10,
+    "reward": {
+     "int": 1
+    }
+   },
+   {
+    "id": "math_03",
+    "tree": "math",
+    "name": "一次不等式",
+    "desc": "不等式の性質と解法、連立不等式",
+    "requires": [
+     "math_01"
+    ],
+    "uses": [
+     "math_01"
+    ],
+    "xp": 10,
+    "reward": {
+     "int": 1
+    }
+   },
+   {
+    "id": "math_04",
+    "tree": "math",
+    "name": "二次関数のグラフ",
+    "desc": "平方完成、頂点、平行移動、最大最小",
+    "requires": [
+     "math_01"
+    ],
+    "uses": [
+     "math_01"
+    ],
+    "xp": 12,
+    "reward": {
+     "int": 1
+    }
+   },
+   {
+    "id": "math_05",
+    "tree": "math",
+    "name": "二次方程式と判別式",
+    "desc": "解の公式、判別式、解と係数の関係",
+    "requires": [
+     "math_04"
+    ],
+    "uses": [
+     "math_01",
+     "math_04"
+    ],
+    "xp": 12,
+    "reward": {
+     "int": 1
+    }
+   },
+   {
+    "id": "math_06",
+    "tree": "math",
+    "name": "三角比",
+    "desc": "sin cos tan の定義と相互関係、拡張",
+    "requires": [
+     "math_02"
+    ],
+    "uses": [
+     "math_02"
+    ],
+    "xp": 12,
+    "reward": {
+     "int": 1
+    }
+   },
+   {
+    "id": "math_07",
+    "tree": "math",
+    "name": "正弦定理・余弦定理",
+    "desc": "三角形の辺と角、面積公式",
+    "requires": [
+     "math_06"
+    ],
+    "uses": [
+     "math_06"
+    ],
+    "xp": 14,
+    "reward": {
+     "int": 2
+    }
+   },
+   {
+    "id": "math_08",
+    "tree": "math",
+    "name": "場合の数",
+    "desc": "順列・組合せ、重複と円順列",
+    "requires": [],
+    "uses": [],
+    "xp": 12,
+    "reward": {
+     "int": 1
+    }
+   },
+   {
+    "id": "math_09",
+    "tree": "math",
+    "name": "確率",
+    "desc": "独立試行、条件付き確率、期待値",
+    "requires": [
+     "math_08"
+    ],
+    "uses": [
+     "math_08"
+    ],
+    "xp": 14,
+    "reward": {
+     "int": 2
+    }
+   },
+   {
+    "id": "math_10",
+    "tree": "math",
+    "name": "図形の性質",
+    "desc": "三角形の五心、円周角、方べきの定理",
+    "requires": [],
+    "uses": [],
+    "xp": 12,
+    "reward": {
+     "int": 1
+    }
+   },
+   {
+    "id": "math_11",
+    "tree": "math",
+    "name": "整数の性質",
+    "desc": "約数と倍数、ユークリッドの互除法、合同式",
+    "requires": [
+     "math_02"
+    ],
+    "uses": [
+     "math_02"
+    ],
+    "xp": 14,
+    "reward": {
+     "int": 2
+    }
+   },
+   {
+    "id": "math_12",
+    "tree": "math",
+    "name": "式と証明",
+    "desc": "恒等式、等式・不等式の証明、相加相乗平均",
+    "requires": [
+     "math_01"
+    ],
+    "uses": [
+     "math_01",
+     "math_03"
+    ],
+    "xp": 14,
+    "reward": {
+     "int": 2
+    }
+   },
+   {
+    "id": "math_13",
+    "tree": "math",
+    "name": "複素数と方程式",
+    "desc": "複素数の演算、高次方程式、因数定理",
+    "requires": [
+     "math_05"
+    ],
+    "uses": [
+     "math_01",
+     "math_05"
+    ],
+    "xp": 14,
+    "reward": {
+     "int": 2
+    }
+   },
+   {
+    "id": "math_14",
+    "tree": "math",
+    "name": "点と直線",
+    "desc": "座標平面上の距離、内分点、直線の方程式",
+    "requires": [
+     "math_04"
+    ],
+    "uses": [
+     "math_04"
+    ],
+    "xp": 12,
+    "reward": {
+     "int": 1
+    }
+   },
+   {
+    "id": "math_15",
+    "tree": "math",
+    "name": "円の方程式",
+    "desc": "円の標準形、直線と円の位置関係",
+    "requires": [
+     "math_14"
+    ],
+    "uses": [
+     "math_05",
+     "math_14"
+    ],
+    "xp": 14,
+    "reward": {
+     "int": 2
+    }
+   },
+   {
+    "id": "math_16",
+    "tree": "math",
+    "name": "軌跡と領域",
+    "desc": "条件を満たす点の集合、不等式の表す領域",
+    "requires": [
+     "math_15"
+    ],
+    "uses": [
+     "math_03",
+     "math_15"
+    ],
+    "xp": 16,
+    "reward": {
+     "int": 2
+    }
+   },
+   {
+    "id": "math_17",
+    "tree": "math",
+    "name": "三角関数",
+    "desc": "弧度法、グラフ、周期と方程式・不等式",
+    "requires": [
+     "math_07"
+    ],
+    "uses": [
+     "math_06",
+     "math_07"
+    ],
+    "xp": 16,
+    "reward": {
+     "int": 2
+    }
+   },
+   {
+    "id": "math_18",
+    "tree": "math",
+    "name": "加法定理",
+    "desc": "加法定理、2倍角、合成",
+    "requires": [
+     "math_17"
+    ],
+    "uses": [
+     "math_17"
+    ],
+    "xp": 16,
+    "reward": {
+     "int": 2
+    }
+   },
+   {
+    "id": "math_19",
+    "tree": "math",
+    "name": "指数関数",
+    "desc": "指数の拡張、指数関数のグラフと方程式",
+    "requires": [
+     "math_02"
+    ],
+    "uses": [
+     "math_02"
+    ],
+    "xp": 14,
+    "reward": {
+     "int": 2
+    }
+   },
+   {
+    "id": "math_20",
+    "tree": "math",
+    "name": "対数関数",
+    "desc": "対数の定義と性質、常用対数",
+    "requires": [
+     "math_19"
+    ],
+    "uses": [
+     "math_19"
+    ],
+    "xp": 16,
+    "reward": {
+     "int": 2
+    }
+   },
+   {
+    "id": "math_21",
+    "tree": "math",
+    "name": "微分法の基礎",
+    "desc": "平均変化率と微分係数、導関数、接線",
+    "requires": [
+     "math_04"
+    ],
+    "uses": [
+     "math_04",
+     "math_05"
+    ],
+    "xp": 16,
+    "reward": {
+     "int": 2
+    }
+   },
+   {
+    "id": "math_22",
+    "tree": "math",
+    "name": "積分法の基礎",
+    "desc": "不定積分・定積分、面積",
+    "requires": [
+     "math_21"
+    ],
+    "uses": [
+     "math_21"
+    ],
+    "xp": 18,
+    "reward": {
+     "int": 2
+    }
+   },
+   {
+    "id": "math_23",
+    "tree": "math",
+    "name": "数列",
+    "desc": "等差・等比数列、シグマ計算",
+    "requires": [
+     "math_01"
+    ],
+    "uses": [
+     "math_01"
+    ],
+    "xp": 14,
+    "reward": {
+     "int": 2
+    }
+   },
+   {
+    "id": "math_24",
+    "tree": "math",
+    "name": "漸化式と数学的帰納法",
+    "desc": "漸化式の型別解法、帰納法の書き方",
+    "requires": [
+     "math_23"
+    ],
+    "uses": [
+     "math_12",
+     "math_23"
+    ],
+    "xp": 18,
+    "reward": {
+     "int": 3
+    }
+   },
+   {
+    "id": "math_25",
+    "tree": "math",
+    "name": "極限",
+    "desc": "数列と関数の極限、無限級数",
+    "requires": [
+     "math_22",
+     "math_23"
+    ],
+    "uses": [
+     "math_22",
+     "math_23"
+    ],
+    "xp": 18,
+    "reward": {
+     "int": 3
+    }
+   },
+   {
+    "id": "math_26",
+    "tree": "math",
+    "name": "微分法の応用",
+    "desc": "積・商・合成関数の微分、増減とグラフ",
+    "requires": [
+     "math_25"
+    ],
+    "uses": [
+     "math_17",
+     "math_20",
+     "math_25"
+    ],
+    "xp": 20,
+    "reward": {
+     "int": 3
+    }
+   },
+   {
+    "id": "math_27",
+    "tree": "math",
+    "name": "積分法の応用",
+    "desc": "置換・部分積分、面積と体積",
+    "requires": [
+     "math_26"
+    ],
+    "uses": [
+     "math_26"
+    ],
+    "xp": 20,
+    "reward": {
+     "int": 3
+    }
+   },
+   {
+    "id": "phys_01",
+    "tree": "phys",
+    "name": "速度と加速度",
+    "desc": "等速直線運動、v-tグラフの読み取り",
+    "requires": [],
+    "uses": [],
+    "xp": 10,
+    "reward": {
+     "int": 1
+    }
+   },
+   {
+    "id": "phys_02",
+    "tree": "phys",
+    "name": "等加速度直線運動",
+    "desc": "3公式、自由落下と鉛直投げ上げ",
+    "requires": [
+     "phys_01"
+    ],
+    "uses": [
+     "phys_01"
+    ],
+    "xp": 12,
+    "reward": {
+     "int": 1
+    }
+   },
+   {
+    "id": "phys_03",
+    "tree": "phys",
+    "name": "力のつりあい",
+    "desc": "重力・垂直抗力・張力・摩擦力、力の分解",
+    "requires": [],
+    "uses": [
+     "math_06"
+    ],
+    "xp": 12,
+    "reward": {
+     "int": 1
+    }
+   },
+   {
+    "id": "phys_04",
+    "tree": "phys",
+    "name": "運動方程式",
+    "desc": "ma=F の立式、連結物体、斜面上の運動",
+    "requires": [
+     "phys_02",
+     "phys_03",
+     "math_21"
+    ],
+    "uses": [
+     "phys_02",
+     "phys_03"
+    ],
+    "xp": 16,
+    "reward": {
+     "int": 2
+    }
+   },
+   {
+    "id": "phys_05",
+    "tree": "phys",
+    "name": "仕事とエネルギー",
+    "desc": "仕事、運動エネルギー、力学的エネルギー保存",
+    "requires": [
+     "phys_04"
+    ],
+    "uses": [
+     "phys_04"
+    ],
+    "xp": 16,
+    "reward": {
+     "int": 2
+    }
+   },
+   {
+    "id": "phys_06",
+    "tree": "phys",
+    "name": "運動量と力積",
+    "desc": "運動量保存則、反発係数、衝突",
+    "requires": [
+     "phys_04"
+    ],
+    "uses": [
+     "phys_04"
+    ],
+    "xp": 16,
+    "reward": {
+     "int": 2
+    }
+   },
+   {
+    "id": "phys_07",
+    "tree": "phys",
+    "name": "円運動と単振動",
+    "desc": "向心力、単振動の周期とエネルギー",
+    "requires": [
+     "phys_05",
+     "math_18"
+    ],
+    "uses": [
+     "phys_05"
+    ],
+    "xp": 18,
+    "reward": {
+     "int": 3
+    }
+   },
+   {
+    "id": "phys_08",
+    "tree": "phys",
+    "name": "万有引力",
+    "desc": "ケプラーの法則、位置エネルギー、脱出速度",
+    "requires": [
+     "phys_07"
+    ],
+    "uses": [
+     "phys_07"
+    ],
+    "xp": 18,
+    "reward": {
+     "int": 3
+    }
+   },
+   {
+    "id": "phys_09",
+    "tree": "phys",
+    "name": "波の性質",
+    "desc": "波の式、重ね合わせ、定常波、反射",
+    "requires": [
+     "phys_01"
+    ],
+    "uses": [
+     "phys_01",
+     "math_17"
+    ],
+    "xp": 14,
+    "reward": {
+     "int": 2
+    }
+   },
+   {
+    "id": "phys_10",
+    "tree": "phys",
+    "name": "音波とドップラー効果",
+    "desc": "弦と気柱の振動、うなり、ドップラー効果",
+    "requires": [
+     "phys_09"
+    ],
+    "uses": [
+     "phys_09"
+    ],
+    "xp": 16,
+    "reward": {
+     "int": 2
+    }
+   },
+   {
+    "id": "phys_11",
+    "tree": "phys",
+    "name": "光の屈折と干渉",
+    "desc": "屈折の法則、全反射、ヤングの実験、薄膜",
+    "requires": [
+     "phys_09"
+    ],
+    "uses": [
+     "phys_09"
+    ],
+    "xp": 18,
+    "reward": {
+     "int": 3
+    }
+   },
+   {
+    "id": "phys_12",
+    "tree": "phys",
+    "name": "静電気力と電場",
+    "desc": "クーロンの法則、電場・電位、コンデンサー",
+    "requires": [
+     "phys_03"
+    ],
+    "uses": [
+     "phys_03"
+    ],
+    "xp": 14,
+    "reward": {
+     "int": 2
+    }
+   },
+   {
+    "id": "phys_13",
+    "tree": "phys",
+    "name": "直流回路",
+    "desc": "オームの法則、合成抵抗、キルヒホッフの法則",
+    "requires": [
+     "phys_12"
+    ],
+    "uses": [
+     "phys_12"
+    ],
+    "xp": 14,
+    "reward": {
+     "int": 2
+    }
+   },
+   {
+    "id": "phys_14",
+    "tree": "phys",
+    "name": "電流と磁場",
+    "desc": "磁場、電磁力、ローレンツ力",
+    "requires": [
+     "phys_13"
+    ],
+    "uses": [
+     "phys_13"
+    ],
+    "xp": 16,
+    "reward": {
+     "int": 2
+    }
+   },
+   {
+    "id": "phys_15",
+    "tree": "phys",
+    "name": "電磁誘導と交流",
+    "desc": "誘導起電力、自己誘導、交流回路",
+    "requires": [
+     "phys_14"
+    ],
+    "uses": [
+     "phys_14"
+    ],
+    "xp": 18,
+    "reward": {
+     "int": 3
+    }
+   },
+   {
+    "id": "chem_01",
+    "tree": "chem",
+    "name": "物質の構成と原子の構造",
+    "desc": "原子・分子・イオン、電子配置、周期表",
+    "requires": [],
+    "uses": [],
+    "xp": 10,
+    "reward": {
+     "int": 1
+    }
+   },
+   {
+    "id": "chem_02",
+    "tree": "chem",
+    "name": "化学結合",
+    "desc": "イオン結合・共有結合・金属結合、結晶",
+    "requires": [
+     "chem_01"
+    ],
+    "uses": [
+     "chem_01"
+    ],
+    "xp": 12,
+    "reward": {
+     "int": 1
+    }
+   },
+   {
+    "id": "chem_03",
+    "tree": "chem",
+    "name": "物質量と化学反応式",
+    "desc": "mol計算、化学反応式の量的関係",
+    "requires": [
+     "chem_01"
+    ],
+    "uses": [
+     "chem_01"
+    ],
+    "xp": 14,
+    "reward": {
+     "int": 2
+    }
+   },
+   {
+    "id": "chem_04",
+    "tree": "chem",
+    "name": "酸と塩基・中和滴定",
+    "desc": "pH、中和反応、滴定曲線",
+    "requires": [
+     "chem_03"
+    ],
+    "uses": [
+     "chem_03"
+    ],
+    "xp": 14,
+    "reward": {
+     "int": 2
+    }
+   },
+   {
+    "id": "chem_05",
+    "tree": "chem",
+    "name": "酸化還元反応",
+    "desc": "酸化数、半反応式、酸化還元滴定",
+    "requires": [
+     "chem_03"
+    ],
+    "uses": [
+     "chem_03"
+    ],
+    "xp": 14,
+    "reward": {
+     "int": 2
+    }
+   },
+   {
+    "id": "chem_06",
+    "tree": "chem",
+    "name": "電池と電気分解",
+    "desc": "ダニエル電池、鉛蓄電池、電気分解の量的関係",
+    "requires": [
+     "chem_05"
+    ],
+    "uses": [
+     "chem_03",
+     "chem_05"
+    ],
+    "xp": 16,
+    "reward": {
+     "int": 2
+    }
+   },
+   {
+    "id": "chem_07",
+    "tree": "chem",
+    "name": "気体の法則",
+    "desc": "ボイル・シャルルの法則、状態方程式、分圧",
+    "requires": [
+     "chem_03"
+    ],
+    "uses": [
+     "chem_03"
+    ],
+    "xp": 14,
+    "reward": {
+     "int": 2
+    }
+   },
+   {
+    "id": "chem_08",
+    "tree": "chem",
+    "name": "溶液の性質",
+    "desc": "濃度、溶解度、沸点上昇と凝固点降下、浸透圧",
+    "requires": [
+     "chem_03"
+    ],
+    "uses": [
+     "chem_03"
+    ],
+    "xp": 14,
+    "reward": {
+     "int": 2
+    }
+   },
+   {
+    "id": "chem_09",
+    "tree": "chem",
+    "name": "化学反応と熱",
+    "desc": "熱化学方程式、ヘスの法則、結合エネルギー",
+    "requires": [
+     "chem_03"
+    ],
+    "uses": [
+     "chem_03"
+    ],
+    "xp": 14,
+    "reward": {
+     "int": 2
+    }
+   },
+   {
+    "id": "chem_10",
+    "tree": "chem",
+    "name": "反応速度と化学平衡",
+    "desc": "反応速度、平衡定数、ルシャトリエの原理",
+    "requires": [
+     "chem_09"
+    ],
+    "uses": [
+     "chem_07",
+     "chem_09"
+    ],
+    "xp": 18,
+    "reward": {
+     "int": 3
+    }
+   },
+   {
+    "id": "chem_11",
+    "tree": "chem",
+    "name": "無機物質の性質",
+    "desc": "典型元素と遷移元素、気体の製法、沈殿反応",
+    "requires": [
+     "chem_05"
+    ],
+    "uses": [
+     "chem_02",
+     "chem_05"
+    ],
+    "xp": 16,
+    "reward": {
+     "int": 2
+    }
+   },
+   {
+    "id": "chem_12",
+    "tree": "chem",
+    "name": "有機化合物の構造と反応",
+    "desc": "官能基、異性体、芳香族、高分子",
+    "requires": [
+     "chem_02"
+    ],
+    "uses": [
+     "chem_02"
+    ],
+    "xp": 18,
+    "reward": {
+     "int": 3
+    }
+   },
+   {
+    "id": "eng_01",
+    "tree": "eng",
+    "name": "基本5文型",
+    "desc": "SV/SVC/SVO/SVOO/SVOC の見分け",
+    "requires": [],
+    "uses": [],
+    "xp": 10,
+    "reward": {
+     "int": 1
+    }
+   },
+   {
+    "id": "eng_02",
+    "tree": "eng",
+    "name": "時制",
+    "desc": "現在・過去・未来、進行形の使い分け",
+    "requires": [
+     "eng_01"
+    ],
+    "uses": [
+     "eng_01"
+    ],
+    "xp": 10,
+    "reward": {
+     "int": 1
+    }
+   },
+   {
+    "id": "eng_03",
+    "tree": "eng",
+    "name": "完了形",
+    "desc": "現在完了・過去完了・未来完了の用法",
+    "requires": [
+     "eng_02"
+    ],
+    "uses": [
+     "eng_02"
+    ],
+    "xp": 12,
+    "reward": {
+     "int": 1
+    }
+   },
+   {
+    "id": "eng_04",
+    "tree": "eng",
+    "name": "助動詞",
+    "desc": "can/must/should/may と過去推量",
+    "requires": [
+     "eng_01"
+    ],
+    "uses": [
+     "eng_01"
+    ],
+    "xp": 12,
+    "reward": {
+     "int": 1
+    }
+   },
+   {
+    "id": "eng_05",
+    "tree": "eng",
+    "name": "受動態",
+    "desc": "受動態の作り方、句動詞・SVOO の受動",
+    "requires": [
+     "eng_02"
+    ],
+    "uses": [
+     "eng_01",
+     "eng_02"
+    ],
+    "xp": 12,
+    "reward": {
+     "int": 1
+    }
+   },
+   {
+    "id": "eng_06",
+    "tree": "eng",
+    "name": "不定詞",
+    "desc": "名詞・形容詞・副詞用法、原形不定詞",
+    "requires": [
+     "eng_01"
+    ],
+    "uses": [
+     "eng_01"
+    ],
+    "xp": 12,
+    "reward": {
+     "int": 1
+    }
+   },
+   {
+    "id": "eng_07",
+    "tree": "eng",
+    "name": "動名詞",
+    "desc": "動名詞と不定詞の使い分け、慣用表現",
+    "requires": [
+     "eng_06"
+    ],
+    "uses": [
+     "eng_06"
+    ],
+    "xp": 12,
+    "reward": {
+     "int": 1
+    }
+   },
+   {
+    "id": "eng_08",
+    "tree": "eng",
+    "name": "分詞と分詞構文",
+    "desc": "現在分詞・過去分詞、分詞構文の意味",
+    "requires": [
+     "eng_07"
+    ],
+    "uses": [
+     "eng_06",
+     "eng_07"
+    ],
+    "xp": 14,
+    "reward": {
+     "int": 2
+    }
+   },
+   {
+    "id": "eng_09",
+    "tree": "eng",
+    "name": "関係代名詞",
+    "desc": "who/which/that、目的格の省略、非制限用法",
+    "requires": [
+     "eng_01"
+    ],
+    "uses": [
+     "eng_01"
+    ],
+    "xp": 14,
+    "reward": {
+     "int": 2
+    }
+   },
+   {
+    "id": "eng_10",
+    "tree": "eng",
+    "name": "関係副詞",
+    "desc": "when/where/why/how、関係代名詞との区別",
+    "requires": [
+     "eng_09"
+    ],
+    "uses": [
+     "eng_09"
+    ],
+    "xp": 14,
+    "reward": {
+     "int": 2
+    }
+   },
+   {
+    "id": "eng_11",
+    "tree": "eng",
+    "name": "比較",
+    "desc": "原級・比較級・最上級、倍数表現",
+    "requires": [
+     "eng_01"
+    ],
+    "uses": [
+     "eng_01"
+    ],
+    "xp": 12,
+    "reward": {
+     "int": 1
+    }
+   },
+   {
+    "id": "eng_12",
+    "tree": "eng",
+    "name": "仮定法",
+    "desc": "仮定法過去・過去完了、wish、as if",
+    "requires": [
+     "eng_04"
+    ],
+    "uses": [
+     "eng_02",
+     "eng_04"
+    ],
+    "xp": 16,
+    "reward": {
+     "int": 2
+    }
+   },
+   {
+    "id": "eng_13",
+    "tree": "eng",
+    "name": "接続詞と前置詞",
+    "desc": "等位・従属接続詞、前置詞の中心義",
+    "requires": [
+     "eng_01"
+    ],
+    "uses": [
+     "eng_01"
+    ],
+    "xp": 12,
+    "reward": {
+     "int": 1
+    }
+   },
+   {
+    "id": "eng_14",
+    "tree": "eng",
+    "name": "語彙(基礎1000語)",
+    "desc": "中学〜高校基礎の頻出語",
+    "requires": [],
+    "uses": [],
+    "xp": 8,
+    "reward": {
+     "int": 1
+    }
+   },
+   {
+    "id": "eng_15",
+    "tree": "eng",
+    "name": "語彙(共通テスト級)",
+    "desc": "共通テスト水準の頻出語2000語",
+    "requires": [
+     "eng_14"
+    ],
+    "uses": [
+     "eng_14"
+    ],
+    "xp": 12,
+    "reward": {
+     "int": 2
+    }
+   },
+   {
+    "id": "eng_16",
+    "tree": "eng",
+    "name": "熟語・イディオム",
+    "desc": "句動詞と慣用表現",
+    "requires": [
+     "eng_15"
+    ],
+    "uses": [
+     "eng_13",
+     "eng_15"
+    ],
+    "xp": 14,
+    "reward": {
+     "int": 2
+    }
+   },
+   {
+    "id": "eng_17",
+    "tree": "eng",
+    "name": "英文解釈(構造把握)",
+    "desc": "SVの発見、修飾関係、挿入と倒置",
+    "requires": [
+     "eng_08",
+     "eng_10"
+    ],
+    "uses": [
+     "eng_08",
+     "eng_09",
+     "eng_10",
+     "eng_13"
+    ],
+    "xp": 18,
+    "reward": {
+     "int": 3
+    }
+   },
+   {
+    "id": "eng_18",
+    "tree": "eng",
+    "name": "長文読解",
+    "desc": "段落構成、指示語、設問の解き方",
+    "requires": [
+     "eng_17"
+    ],
+    "uses": [
+     "eng_15",
+     "eng_16",
+     "eng_17"
+    ],
+    "xp": 20,
+    "reward": {
+     "int": 3
+    }
+   },
+   {
+    "id": "eng_19",
+    "tree": "eng",
+    "name": "英作文",
+    "desc": "和文英訳と自由英作文の型",
+    "requires": [
+     "eng_12",
+     "eng_17"
+    ],
+    "uses": [
+     "eng_11",
+     "eng_12",
+     "eng_17"
+    ],
+    "xp": 20,
+    "reward": {
+     "int": 3
+    }
+   },
+   {
+    "id": "kobun_01",
+    "tree": "kobun",
+    "name": "歴史的仮名遣い",
+    "desc": "仮名遣いの読み替えと基本ルール",
+    "requires": [],
+    "uses": [],
+    "xp": 8,
+    "reward": {
+     "int": 1
+    }
+   },
+   {
+    "id": "kobun_02",
+    "tree": "kobun",
+    "name": "古文単語(基礎)",
+    "desc": "頻出古語300語の意味",
+    "requires": [],
+    "uses": [],
+    "xp": 10,
+    "reward": {
+     "int": 1
+    }
+   },
+   {
+    "id": "kobun_03",
+    "tree": "kobun",
+    "name": "動詞の活用",
+    "desc": "九種の活用、活用形の識別",
+    "requires": [
+     "kobun_01"
+    ],
+    "uses": [
+     "kobun_01"
+    ],
+    "xp": 12,
+    "reward": {
+     "int": 1
+    }
+   },
+   {
+    "id": "kobun_04",
+    "tree": "kobun",
+    "name": "形容詞・形容動詞の活用",
+    "desc": "ク活用・シク活用、ナリ活用・タリ活用",
+    "requires": [
+     "kobun_03"
+    ],
+    "uses": [
+     "kobun_03"
+    ],
+    "xp": 12,
+    "reward": {
+     "int": 1
+    }
+   },
+   {
+    "id": "kobun_05",
+    "tree": "kobun",
+    "name": "助動詞(過去・完了)",
+    "desc": "き・けり・つ・ぬ・たり・り",
+    "requires": [
+     "kobun_03"
+    ],
+    "uses": [
+     "kobun_03"
+    ],
+    "xp": 14,
+    "reward": {
+     "int": 2
+    }
+   },
+   {
+    "id": "kobun_06",
+    "tree": "kobun",
+    "name": "助動詞(推量・意志)",
+    "desc": "む・べし・らむ・けむ・まし",
+    "requires": [
+     "kobun_05"
+    ],
+    "uses": [
+     "kobun_05"
+    ],
+    "xp": 14,
+    "reward": {
+     "int": 2
+    }
+   },
+   {
+    "id": "kobun_07",
+    "tree": "kobun",
+    "name": "助動詞(受身・使役・断定)",
+    "desc": "る・らる・す・さす・なり・たり",
+    "requires": [
+     "kobun_05"
+    ],
+    "uses": [
+     "kobun_05"
+    ],
+    "xp": 14,
+    "reward": {
+     "int": 2
+    }
+   },
+   {
+    "id": "kobun_08",
+    "tree": "kobun",
+    "name": "助詞のはたらき",
+    "desc": "格助詞・接続助詞・係助詞・終助詞",
+    "requires": [
+     "kobun_03"
+    ],
+    "uses": [
+     "kobun_03"
+    ],
+    "xp": 12,
+    "reward": {
+     "int": 1
+    }
+   },
+   {
+    "id": "kobun_09",
+    "tree": "kobun",
+    "name": "敬語",
+    "desc": "尊敬・謙譲・丁寧、二方面への敬語",
+    "requires": [
+     "kobun_07"
+    ],
+    "uses": [
+     "kobun_07"
+    ],
+    "xp": 16,
+    "reward": {
+     "int": 2
+    }
+   },
+   {
+    "id": "kobun_10",
+    "tree": "kobun",
+    "name": "係り結び",
+    "desc": "ぞ・なむ・や・か・こそ と結びの流れ",
+    "requires": [
+     "kobun_08"
+    ],
+    "uses": [
+     "kobun_06",
+     "kobun_08"
+    ],
+    "xp": 14,
+    "reward": {
+     "int": 2
+    }
+   },
+   {
+    "id": "kobun_11",
+    "tree": "kobun",
+    "name": "和歌の修辞",
+    "desc": "掛詞・枕詞・序詞・縁語・本歌取り",
+    "requires": [
+     "kobun_10"
+    ],
+    "uses": [
+     "kobun_02",
+     "kobun_10"
+    ],
+    "xp": 16,
+    "reward": {
+     "int": 2
+    }
+   },
+   {
+    "id": "kobun_12",
+    "tree": "kobun",
+    "name": "古文読解",
+    "desc": "主語の補い方、場面把握、口語訳",
+    "requires": [
+     "kobun_09",
+     "kobun_11"
+    ],
+    "uses": [
+     "kobun_02",
+     "kobun_04",
+     "kobun_05",
+     "kobun_06",
+     "kobun_09",
+     "kobun_11"
+    ],
+    "xp": 20,
+    "reward": {
+     "int": 3
+    }
+   },
+   {
+    "id": "kanbun_01",
+    "tree": "kanbun",
+    "name": "返り点と書き下し文",
+    "desc": "レ点・一二点・上下点、送り仮名",
+    "requires": [],
+    "uses": [],
+    "xp": 8,
+    "reward": {
+     "int": 1
+    }
+   },
+   {
+    "id": "kanbun_02",
+    "tree": "kanbun",
+    "name": "再読文字",
+    "desc": "未・将・当・応・宜・須・猶・盍",
+    "requires": [
+     "kanbun_01"
+    ],
+    "uses": [
+     "kanbun_01"
+    ],
+    "xp": 12,
+    "reward": {
+     "int": 1
+    }
+   },
+   {
+    "id": "kanbun_03",
+    "tree": "kanbun",
+    "name": "否定形",
+    "desc": "不・非・無・未、二重否定と部分否定",
+    "requires": [
+     "kanbun_01"
+    ],
+    "uses": [
+     "kanbun_01"
+    ],
+    "xp": 12,
+    "reward": {
+     "int": 1
+    }
+   },
+   {
+    "id": "kanbun_04",
+    "tree": "kanbun",
+    "name": "疑問・反語",
+    "desc": "何・安・豈・誰、疑問と反語の区別",
+    "requires": [
+     "kanbun_03"
+    ],
+    "uses": [
+     "kanbun_03"
+    ],
+    "xp": 14,
+    "reward": {
+     "int": 2
+    }
+   },
+   {
+    "id": "kanbun_05",
+    "tree": "kanbun",
+    "name": "使役形",
+    "desc": "使・令・教・遣",
+    "requires": [
+     "kanbun_03"
+    ],
+    "uses": [
+     "kanbun_03"
+    ],
+    "xp": 12,
+    "reward": {
+     "int": 1
+    }
+   },
+   {
+    "id": "kanbun_06",
+    "tree": "kanbun",
+    "name": "受身形",
+    "desc": "見・被・為〜所",
+    "requires": [
+     "kanbun_05"
+    ],
+    "uses": [
+     "kanbun_05"
+    ],
+    "xp": 12,
+    "reward": {
+     "int": 1
+    }
+   },
+   {
+    "id": "kanbun_07",
+    "tree": "kanbun",
+    "name": "比較・選択形",
+    "desc": "於・于・孰与・不如",
+    "requires": [
+     "kanbun_04"
+    ],
+    "uses": [
+     "kanbun_04"
+    ],
+    "xp": 14,
+    "reward": {
+     "int": 2
+    }
+   },
+   {
+    "id": "kanbun_08",
+    "tree": "kanbun",
+    "name": "限定・累加形",
+    "desc": "唯・独・非唯〜亦",
+    "requires": [
+     "kanbun_07"
+    ],
+    "uses": [
+     "kanbun_07"
+    ],
+    "xp": 14,
+    "reward": {
+     "int": 2
+    }
+   },
+   {
+    "id": "kanbun_09",
+    "tree": "kanbun",
+    "name": "漢文読解",
+    "desc": "句形の総合、内容把握と主旨",
+    "requires": [
+     "kanbun_02",
+     "kanbun_06",
+     "kanbun_08"
+    ],
+    "uses": [
+     "kanbun_02",
+     "kanbun_03",
+     "kanbun_04",
+     "kanbun_05",
+     "kanbun_06",
+     "kanbun_07",
+     "kanbun_08"
+    ],
+    "xp": 20,
+    "reward": {
+     "int": 3
+    }
+   },
+   {
+    "id": "geo_01",
+    "tree": "geo",
+    "name": "地図と地理情報",
+    "desc": "図法の特徴、地形図の読図、GIS",
+    "requires": [],
+    "uses": [],
+    "xp": 10,
+    "reward": {
+     "int": 1
+    }
+   },
+   {
+    "id": "geo_02",
+    "tree": "geo",
+    "name": "地形(内的営力)",
+    "desc": "プレート運動、変動帯、火山と地震",
+    "requires": [],
+    "uses": [],
+    "xp": 12,
+    "reward": {
+     "int": 1
+    }
+   },
+   {
+    "id": "geo_03",
+    "tree": "geo",
+    "name": "地形(外的営力)",
+    "desc": "河川・海岸・氷河・乾燥地形",
+    "requires": [
+     "geo_02"
+    ],
+    "uses": [
+     "geo_02"
+    ],
+    "xp": 12,
+    "reward": {
+     "int": 1
+    }
+   },
+   {
+    "id": "geo_04",
+    "tree": "geo",
+    "name": "気候区分",
+    "desc": "ケッペンの気候区分、雨温図の読み取り",
+    "requires": [
+     "geo_01"
+    ],
+    "uses": [
+     "geo_01"
+    ],
+    "xp": 14,
+    "reward": {
+     "int": 2
+    }
+   },
+   {
+    "id": "geo_05",
+    "tree": "geo",
+    "name": "植生と土壌",
+    "desc": "バイオームと成帯土壌・間帯土壌",
+    "requires": [
+     "geo_04"
+    ],
+    "uses": [
+     "geo_04"
+    ],
+    "xp": 12,
+    "reward": {
+     "int": 1
+    }
+   },
+   {
+    "id": "geo_06",
+    "tree": "geo",
+    "name": "農業地域",
+    "desc": "農業立地論、地域別の農業形態",
+    "requires": [
+     "geo_05"
+    ],
+    "uses": [
+     "geo_04",
+     "geo_05"
+    ],
+    "xp": 14,
+    "reward": {
+     "int": 2
+    }
+   },
+   {
+    "id": "geo_07",
+    "tree": "geo",
+    "name": "水産業と林業",
+    "desc": "漁場の成立条件、森林資源の分布",
+    "requires": [
+     "geo_06"
+    ],
+    "uses": [
+     "geo_03",
+     "geo_06"
+    ],
+    "xp": 12,
+    "reward": {
+     "int": 1
+    }
+   },
+   {
+    "id": "geo_08",
+    "tree": "geo",
+    "name": "資源とエネルギー",
+    "desc": "鉱産資源の分布、エネルギー構成の変化",
+    "requires": [
+     "geo_02"
+    ],
+    "uses": [
+     "geo_02"
+    ],
+    "xp": 14,
+    "reward": {
+     "int": 2
+    }
+   },
+   {
+    "id": "geo_09",
+    "tree": "geo",
+    "name": "工業立地",
+    "desc": "ウェーバーの立地論、工業地域の変化",
+    "requires": [
+     "geo_08"
+    ],
+    "uses": [
+     "geo_08"
+    ],
+    "xp": 14,
+    "reward": {
+     "int": 2
+    }
+   },
+   {
+    "id": "geo_10",
+    "tree": "geo",
+    "name": "商業・サービス業と交通",
+    "desc": "中心地理論、交通網と貿易",
+    "requires": [
+     "geo_09"
+    ],
+    "uses": [
+     "geo_09"
+    ],
+    "xp": 14,
+    "reward": {
+     "int": 2
+    }
+   },
+   {
+    "id": "geo_11",
+    "tree": "geo",
+    "name": "人口と都市",
+    "desc": "人口転換、人口ピラミッド、都市化",
+    "requires": [
+     "geo_01"
+    ],
+    "uses": [
+     "geo_01"
+    ],
+    "xp": 14,
+    "reward": {
+     "int": 2
+    }
+   },
+   {
+    "id": "geo_12",
+    "tree": "geo",
+    "name": "村落と都市問題",
+    "desc": "集落の形態、スプロールとインナーシティ",
+    "requires": [
+     "geo_11"
+    ],
+    "uses": [
+     "geo_11"
+    ],
+    "xp": 12,
+    "reward": {
+     "int": 1
+    }
+   },
+   {
+    "id": "geo_13",
+    "tree": "geo",
+    "name": "民族・宗教・言語",
+    "desc": "世界の民族分布と宗教圏、民族問題",
+    "requires": [
+     "geo_11"
+    ],
+    "uses": [
+     "geo_11"
+    ],
+    "xp": 14,
+    "reward": {
+     "int": 2
+    }
+   },
+   {
+    "id": "geo_14",
+    "tree": "geo",
+    "name": "国家と国家群",
+    "desc": "国境、EU・ASEAN などの地域統合",
+    "requires": [
+     "geo_13"
+    ],
+    "uses": [
+     "geo_13"
+    ],
+    "xp": 14,
+    "reward": {
+     "int": 2
+    }
+   },
+   {
+    "id": "geo_15",
+    "tree": "geo",
+    "name": "世界地誌(アジア・アフリカ)",
+    "desc": "各地域の自然・産業・課題",
+    "requires": [
+     "geo_06",
+     "geo_14"
+    ],
+    "uses": [
+     "geo_04",
+     "geo_06",
+     "geo_08",
+     "geo_13",
+     "geo_14"
+    ],
+    "xp": 18,
+    "reward": {
+     "int": 3
+    }
+   },
+   {
+    "id": "geo_16",
+    "tree": "geo",
+    "name": "世界地誌(欧米・オセアニア)",
+    "desc": "各地域の自然・産業・課題",
+    "requires": [
+     "geo_15"
+    ],
+    "uses": [
+     "geo_04",
+     "geo_06",
+     "geo_08",
+     "geo_13",
+     "geo_14",
+     "geo_15"
+    ],
+    "xp": 18,
+    "reward": {
+     "int": 3
+    }
+   },
+   {
+    "id": "up_01",
+    "tree": "up",
+    "name": "膝つき腕立て伏せ",
+    "desc": "10回×2セットを目安に",
+    "requires": [],
+    "uses": [],
+    "xp": 8,
+    "reward": {
+     "str": 1
+    }
+   },
+   {
+    "id": "up_02",
+    "tree": "up",
+    "name": "腕立て伏せ",
+    "desc": "正しいフォームで10回",
+    "requires": [
+     "up_01"
+    ],
+    "uses": [
+     "up_01"
+    ],
+    "xp": 12,
+    "reward": {
+     "str": 2
+    }
+   },
+   {
+    "id": "up_03",
+    "tree": "up",
+    "name": "ナロープッシュアップ",
+    "desc": "手幅を狭めて上腕三頭筋へ",
+    "requires": [
+     "up_02"
+    ],
+    "uses": [
+     "up_02"
+    ],
+    "xp": 14,
+    "reward": {
+     "str": 2
+    }
+   },
+   {
+    "id": "up_04",
+    "tree": "up",
+    "name": "デクラインプッシュアップ",
+    "desc": "足を台に乗せて上部を狙う",
+    "requires": [
+     "up_02"
+    ],
+    "uses": [
+     "up_02"
+    ],
+    "xp": 14,
+    "reward": {
+     "str": 2
+    }
+   },
+   {
+    "id": "up_05",
+    "tree": "up",
+    "name": "斜め懸垂",
+    "desc": "テーブルや低い棒で背中を引く",
+    "requires": [],
+    "uses": [],
+    "xp": 10,
+    "reward": {
+     "str": 1
+    }
+   },
+   {
+    "id": "up_06",
+    "tree": "up",
+    "name": "補助つき懸垂",
+    "desc": "ゴムや足補助で引き上げる",
+    "requires": [
+     "up_05"
+    ],
+    "uses": [
+     "up_05"
+    ],
+    "xp": 14,
+    "reward": {
+     "str": 2
+    }
+   },
+   {
+    "id": "up_07",
+    "tree": "up",
+    "name": "懸垂",
+    "desc": "自重で5回",
+    "requires": [
+     "up_06"
+    ],
+    "uses": [
+     "up_05",
+     "up_06"
+    ],
+    "xp": 18,
+    "reward": {
+     "str": 3
+    }
+   },
+   {
+    "id": "up_08",
+    "tree": "up",
+    "name": "ディップス",
+    "desc": "椅子や平行棒で体を沈める",
+    "requires": [
+     "up_03"
+    ],
+    "uses": [
+     "up_02",
+     "up_03"
+    ],
+    "xp": 16,
+    "reward": {
+     "str": 3
+    }
+   },
+   {
+    "id": "up_09",
+    "tree": "up",
+    "name": "パイクプッシュアップ",
+    "desc": "腰を高く上げて肩を狙う",
+    "requires": [
+     "up_04"
+    ],
+    "uses": [
+     "up_04"
+    ],
+    "xp": 16,
+    "reward": {
+     "str": 3
+    }
+   },
+   {
+    "id": "up_10",
+    "tree": "up",
+    "name": "壁逆立ち腕立て",
+    "desc": "壁に足をつけて倒立push",
+    "requires": [
+     "up_09"
+    ],
+    "uses": [
+     "up_08",
+     "up_09"
+    ],
+    "xp": 20,
+    "reward": {
+     "str": 3,
+     "sta": 1
+    }
+   },
+   {
+    "id": "low_01",
+    "tree": "low",
+    "name": "自重スクワット",
+    "desc": "膝がつま先より前に出ないように15回",
+    "requires": [],
+    "uses": [],
+    "xp": 8,
+    "reward": {
+     "str": 1
+    }
+   },
+   {
+    "id": "low_02",
+    "tree": "low",
+    "name": "ワイドスクワット",
+    "desc": "脚を広げて内転筋も使う",
+    "requires": [
+     "low_01"
+    ],
+    "uses": [
+     "low_01"
+    ],
+    "xp": 12,
+    "reward": {
+     "str": 1,
+     "sta": 1
+    }
+   },
+   {
+    "id": "low_03",
+    "tree": "low",
+    "name": "ランジ",
+    "desc": "前後に踏み込んで片脚ずつ",
+    "requires": [
+     "low_01"
+    ],
+    "uses": [
+     "low_01"
+    ],
+    "xp": 12,
+    "reward": {
+     "str": 1,
+     "sta": 1
+    }
+   },
+   {
+    "id": "low_04",
+    "tree": "low",
+    "name": "ブルガリアンスクワット",
+    "desc": "後ろ足を台に乗せて片脚荷重",
+    "requires": [
+     "low_03"
+    ],
+    "uses": [
+     "low_03"
+    ],
+    "xp": 16,
+    "reward": {
+     "str": 3
+    }
+   },
+   {
+    "id": "low_05",
+    "tree": "low",
+    "name": "ジャンプスクワット",
+    "desc": "爆発的に跳ぶ、着地は静かに",
+    "requires": [
+     "low_02"
+    ],
+    "uses": [
+     "low_01",
+     "low_02"
+    ],
+    "xp": 16,
+    "reward": {
+     "str": 2,
+     "sta": 1
+    }
+   },
+   {
+    "id": "low_06",
+    "tree": "low",
+    "name": "カーフレイズ",
+    "desc": "ふくらはぎを鍛える、20回",
+    "requires": [
+     "low_01"
+    ],
+    "uses": [
+     "low_01"
+    ],
+    "xp": 8,
+    "reward": {
+     "str": 1
+    }
+   },
+   {
+    "id": "low_07",
+    "tree": "low",
+    "name": "ヒップリフト",
+    "desc": "仰向けで尻を持ち上げる",
+    "requires": [
+     "low_01"
+    ],
+    "uses": [
+     "low_01"
+    ],
+    "xp": 10,
+    "reward": {
+     "str": 1
+    }
+   },
+   {
+    "id": "low_08",
+    "tree": "low",
+    "name": "片脚ヒップリフト",
+    "desc": "片脚だけで持ち上げる",
+    "requires": [
+     "low_07"
+    ],
+    "uses": [
+     "low_07"
+    ],
+    "xp": 14,
+    "reward": {
+     "str": 2
+    }
+   },
+   {
+    "id": "low_09",
+    "tree": "low",
+    "name": "補助つきピストルスクワット",
+    "desc": "片脚スクワット、手すり補助可",
+    "requires": [
+     "low_04",
+     "low_05"
+    ],
+    "uses": [
+     "low_04",
+     "low_05",
+     "low_08"
+    ],
+    "xp": 20,
+    "reward": {
+     "str": 3,
+     "sta": 1
+    }
+   },
+   {
+    "id": "core_01",
+    "tree": "core",
+    "name": "プランク",
+    "desc": "30秒キープ",
+    "requires": [],
+    "uses": [],
+    "xp": 8,
+    "reward": {
+     "sta": 1
+    }
+   },
+   {
+    "id": "core_02",
+    "tree": "core",
+    "name": "サイドプランク",
+    "desc": "左右30秒ずつ",
+    "requires": [
+     "core_01"
+    ],
+    "uses": [
+     "core_01"
+    ],
+    "xp": 12,
+    "reward": {
+     "str": 1,
+     "sta": 1
+    }
+   },
+   {
+    "id": "core_03",
+    "tree": "core",
+    "name": "クランチ",
+    "desc": "腹直筋の上部、20回",
+    "requires": [],
+    "uses": [],
+    "xp": 8,
+    "reward": {
+     "str": 1
+    }
+   },
+   {
+    "id": "core_04",
+    "tree": "core",
+    "name": "レッグレイズ",
+    "desc": "腹直筋の下部、15回",
+    "requires": [
+     "core_03"
+    ],
+    "uses": [
+     "core_03"
+    ],
+    "xp": 12,
+    "reward": {
+     "str": 1,
+     "sta": 1
+    }
+   },
+   {
+    "id": "core_05",
+    "tree": "core",
+    "name": "ヒールタッチ",
+    "desc": "腹斜筋、左右20回",
+    "requires": [
+     "core_03"
+    ],
+    "uses": [
+     "core_03"
+    ],
+    "xp": 10,
+    "reward": {
+     "str": 1
+    }
+   },
+   {
+    "id": "core_06",
+    "tree": "core",
+    "name": "マウンテンクライマー",
+    "desc": "体幹+心拍、30秒",
+    "requires": [
+     "core_01"
+    ],
+    "uses": [
+     "core_01"
+    ],
+    "xp": 12,
+    "reward": {
+     "sta": 2
+    }
+   },
+   {
+    "id": "core_07",
+    "tree": "core",
+    "name": "デッドバグ",
+    "desc": "腰を反らさず対角に伸ばす",
+    "requires": [
+     "core_01"
+    ],
+    "uses": [
+     "core_01"
+    ],
+    "xp": 10,
+    "reward": {
+     "sta": 1
+    }
+   },
+   {
+    "id": "core_08",
+    "tree": "core",
+    "name": "ロシアンツイスト",
+    "desc": "座って左右にひねる、30回",
+    "requires": [
+     "core_05"
+    ],
+    "uses": [
+     "core_05"
+    ],
+    "xp": 14,
+    "reward": {
+     "str": 2
+    }
+   },
+   {
+    "id": "core_09",
+    "tree": "core",
+    "name": "V字腹筋",
+    "desc": "上下同時に上げてV字を作る",
+    "requires": [
+     "core_04",
+     "core_08"
+    ],
+    "uses": [
+     "core_04",
+     "core_05",
+     "core_08"
+    ],
+    "xp": 18,
+    "reward": {
+     "str": 3,
+     "sta": 1
+    }
+   },
+   {
+    "id": "end_01",
+    "tree": "end",
+    "name": "ウォーキング30分",
+    "desc": "早歩きで30分",
+    "requires": [],
+    "uses": [],
+    "xp": 8,
+    "reward": {
+     "sta": 1
+    }
+   },
+   {
+    "id": "end_02",
+    "tree": "end",
+    "name": "ジョギング10分",
+    "desc": "会話できる速さで10分",
+    "requires": [
+     "end_01"
+    ],
+    "uses": [
+     "end_01"
+    ],
+    "xp": 12,
+    "reward": {
+     "sta": 2
+    }
+   },
+   {
+    "id": "end_03",
+    "tree": "end",
+    "name": "ジョギング30分",
+    "desc": "一定ペースで30分",
+    "requires": [
+     "end_02"
+    ],
+    "uses": [
+     "end_02"
+    ],
+    "xp": 16,
+    "reward": {
+     "sta": 3
+    }
+   },
+   {
+    "id": "end_04",
+    "tree": "end",
+    "name": "インターバル走",
+    "desc": "速い/遅いを交互に繰り返す",
+    "requires": [
+     "end_03"
+    ],
+    "uses": [
+     "end_03"
+    ],
+    "xp": 18,
+    "reward": {
+     "sta": 3
+    }
+   },
+   {
+    "id": "end_05",
+    "tree": "end",
+    "name": "縄跳び5分",
+    "desc": "連続跳びで5分",
+    "requires": [
+     "end_02"
+    ],
+    "uses": [
+     "end_02"
+    ],
+    "xp": 12,
+    "reward": {
+     "sta": 2
+    }
+   },
+   {
+    "id": "end_06",
+    "tree": "end",
+    "name": "バーピー",
+    "desc": "全身運動、20回",
+    "requires": [
+     "end_05",
+     "low_05"
+    ],
+    "uses": [
+     "end_05"
+    ],
+    "xp": 16,
+    "reward": {
+     "str": 1,
+     "sta": 2
+    }
+   },
+   {
+    "id": "end_07",
+    "tree": "end",
+    "name": "5kmラン",
+    "desc": "止まらず5km走りきる",
+    "requires": [
+     "end_04"
+    ],
+    "uses": [
+     "end_03",
+     "end_04"
+    ],
+    "xp": 22,
+    "reward": {
+     "sta": 3
+    }
+   }
+  ]
+ },
+ "settings": {
+  "model": "claude-haiku-4-5",
+  "theme": "auto",
+  "aiEnabled": true
+ }
+}

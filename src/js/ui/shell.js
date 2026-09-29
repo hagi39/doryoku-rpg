@@ -46,6 +46,33 @@
 
       U.qs('#boot').hidden = true;
       U.qs('#app').hidden = false;
+
+      this.claimPastCoins();
+    },
+
+    /**
+     * コインができる前にクリアしたステージの分を渡し、1回だけお知らせを出す。
+     * バックアップの読み込みでも boot を通るので、ここで受け取る(渡し済みの分は二重に入らない)。
+     */
+    claimPastCoins: function () {
+      const got = global.Actions.claimPastStageCoins(this);
+      if (!got.coins) return;
+      this.renderTopRight();
+      const self = this;
+      const names = got.stages.map(function (id) { return global.Rules.stageById(id).name; }).join('・');
+      // 確認ダイアログの「すすむ」から boot が呼ばれると、その直後にダイアログが閉じられて
+      // お知らせまで消えてしまうので、一拍おいてから出す
+      setTimeout(function () {
+        self.modal({
+          title: '🪙 コインを受け取った',
+          body: U.el('div', {}, [
+            U.el('p', { text: 'これまでのクリア分(' + names + ')として' }),
+            U.el('p', { text: 'コイン +' + got.coins }),
+            U.el('p', { class: 'quiz-note', text: 'コインは、これから作るショップで使えます(準備中)。' }),
+          ]),
+          actions: [{ label: 'OK', kind: 'primary' }],
+        });
+      }, 0);
     },
 
     reindex: function () {
@@ -120,6 +147,7 @@
       host.innerHTML = '';
       const p = global.Rules.levelProgress(this.progress.totalXp);
       host.appendChild(U.el('span', { text: 'Lv.' + p.level }));
+      host.appendChild(U.el('span', { title: '持っているコイン', text: '🪙' + (this.progress.coins || 0) }));
       const pets = this.progress.companions || {};
       for (const pet of global.Rules.PETS) {
         if (!pets[pet.id]) continue;

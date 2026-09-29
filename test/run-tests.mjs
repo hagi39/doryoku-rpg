@@ -1773,6 +1773,118 @@ test('セーブの互換: 海をクリアしたセーブを保存・読み直し
   eq(back.stageClears.grass, 0, '草原のクリア記録:');
 });
 
+// ---------------- コイン ----------------
+
+test('コイン: ステージごとの枚数(火山は Artifact 版と同じ200)', () => {
+  const got = Rules.STAGES.map((st) => st.id + ':' + st.coins).join(' ');
+  eq(got, 'grass:20 sea:40 desert:70 snow:120 volcano:200');
+});
+
+test('コイン: 初めてクリアしたときだけもらえる', () => {
+  const app = makeApp(U.deepClone(data));
+  eq(app.progress.coins, 0, 'はじめは0枚:');
+  eq(Actions.winStage(app, 'grass', { now: 1 }).coins, 20, '草原:');
+  eq(Actions.winStage(app, 'grass', { now: 2 }).coins, 0, '草原の2回目:');
+  eq(Actions.winStage(app, 'sea', { now: 3 }).coins, 40, '海:');
+  eq(app.progress.coins, 60, '合計:');
+  eq(Actions.claimPastStageCoins(app).coins, 0, '勝ったぶんは、さかのぼりで二重に入らない:');
+  eq(app.progress.coins, 60, '合計は変わらない:');
+});
+
+test('コイン: 未クリアのステージの分はさかのぼりで入らない', () => {
+  const app = makeApp(U.deepClone(data));
+  eq(Actions.claimPastStageCoins(app).coins, 0);
+  eq(Actions.payStageCoins(app, 'sea'), 0, '海:');
+  eq(app.progress.coins, 0);
+});
+
+test('コイン: 壊れた枚数は0として読む', () => {
+  for (const bad of ['abc', -5, null, NaN]) {
+    const old = JSON.parse(oldProgressText);
+    old.coins = bad;
+    old.coinPaid = 'x';
+    mem.clear();
+    mem.set('doryoku-rpg/progress', JSON.stringify(old));
+    const loaded = Store.loadProgress(data);
+    eq(loaded.coins, 0, String(bad) + ':');
+    eq(JSON.stringify(loaded.coinPaid), '{}', String(bad) + ' 渡し済み:');
+  }
+});
+
+// セーブの互換(コインを足す前の 8a8a4fb のコードで作った、海クリア済みのセーブ)
+const seaProgressText = readFileSync(join(FIX, 'progress-8a8a4fb.json'), 'utf8');
+const seaBackupText = readFileSync(join(FIX, 'backup-8a8a4fb.json'), 'utf8');
+
+/** 読み込んで、起動時と同じようにさかのぼりのコインを受け取る */
+function loadAndClaim() {
+  const app = makeApp(U.deepClone(data));
+  app.progress = Store.loadProgress(data);
+  const got = Actions.claimPastStageCoins(app);
+  Store.saveProgress(app.progress);
+  return { app, got };
+}
+
+test('セーブの互換: 海クリア済みのセーブがそのまま読める', () => {
+  mem.clear();
+  mem.set('doryoku-rpg/progress', seaProgressText);
+  const old = JSON.parse(seaProgressText);
+  const loaded = Store.loadProgress(data);
+  sameAsOld(loaded, old, '');
+  eq(loaded.companions.turtle, true, 'カメ:');
+  eq(loaded.coins, 0, '読み込んだだけではコインは0:');
+});
+
+test('セーブの互換: 海クリア済みのセーブは、さかのぼって60枚(1回だけ)', () => {
+  mem.clear();
+  mem.set('doryoku-rpg/progress', seaProgressText);
+  const old = JSON.parse(seaProgressText);
+  const first = loadAndClaim();
+  eq(first.got.coins, 60, '草原20 + 海40:');
+  eq(first.got.stages.join(','), 'grass,sea', 'どのステージの分か:');
+  eq(first.app.progress.coins, 60, '持っている枚数:');
+  // 経験値・クリア記録・ペットなど、ほかの項目は変わらない
+  sameAsOld(first.app.progress, old, 'さかのぼり後 ', ['updatedAt']);
+
+  // 開き直しても増えない
+  const second = loadAndClaim();
+  eq(second.got.coins, 0, '2回目の起動:');
+  eq(second.app.progress.coins, 60, '2回目の起動後の枚数:');
+  eq(loadAndClaim().app.progress.coins, 60, '3回目の起動後の枚数:');
+});
+
+test('セーブの互換: 草原だけのセーブは、さかのぼって20枚。そのあと海で40枚', () => {
+  mem.clear();
+  mem.set('doryoku-rpg/progress', oldProgressText);
+  const { app, got } = loadAndClaim();
+  eq(got.coins, 20, 'さかのぼり:');
+  const win = Actions.winStage(app, 'sea', { now: 1234 });
+  eq(win.coins, 40, '海:');
+  Store.saveProgress(app.progress);
+  const again = loadAndClaim();
+  eq(again.got.coins, 0, '海のあとで起動し直しても増えない:');
+  eq(again.app.progress.coins, 60, '合計:');
+});
+
+test('セーブの互換: 海クリア済みのバックアップを読み込むと60枚、書き出し→読み込みでも消えない', () => {
+  mem.clear();
+  const read = Store.importBackup(seaBackupText);
+  eq(read.ok, true, '読み込み: ' + (read.error || ''));
+  Store.applyBackup(read.backup);
+  const { app, got } = loadAndClaim();
+  sameAsOld(app.progress, JSON.parse(seaBackupText).progress, 'バックアップ ', ['updatedAt']);
+  eq(got.coins, 60, 'さかのぼり:');
+
+  // 書き出して、別の端末(空の保存領域)で読み込む
+  const text = JSON.stringify(Store.exportBackup(app.progress, app.treeData, Store.defaultSettings(), {}));
+  mem.clear();
+  const back = Store.importBackup(text);
+  eq(back.ok, true, '読み込み2: ' + (back.error || ''));
+  Store.applyBackup(back.backup);
+  const moved = loadAndClaim();
+  eq(moved.app.progress.coins, 60, '書き出し→読み込み後の枚数:');
+  eq(moved.got.coins, 0, '読み込み直しで二重に入らない:');
+});
+
 test('P7 受け渡し: バックアップの書き出し→読み込みで進捗が戻る', () => {
   const app = makeApp(U.deepClone(data));
   const now = Date.now();

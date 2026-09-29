@@ -42,21 +42,22 @@
   // 遊んでいる人の Artifact 版に合わせた 草原→海→砂漠→雪山→火山。
   // 倒すと pet が必ず仲間になる。ready:false のステージは「準備中」として見せるだけ。
   // 敵のHP = enemyBase + 攻撃力×enemyPer、反撃 = backMin 〜 backMin+backSpread-1
+  // coins: 初めてクリアしたときのコイン(Artifact 版で分かっているのは火山の200だけ。ほかはそこから決めた)
   const STAGES = [
     { id: 'grass', name: '草原', enemy: 'スライム', icon: '🟢', pet: 'chick', ready: true,
-      req: C.GRASS_REQ, fresh: C.GRASS_FRESH_COUNT, xp: C.GRASS_CLEAR_XP,
+      req: C.GRASS_REQ, fresh: C.GRASS_FRESH_COUNT, xp: C.GRASS_CLEAR_XP, coins: 20,
       enemyBase: C.GRASS_SLIME_BASE, enemyPer: C.GRASS_SLIME_PER,
       backMin: C.GRASS_BACK_MIN, backSpread: C.GRASS_BACK_SPREAD },
     // 条件ぴったりで勝率約8割・残りHP約15%。少し育てるとほぼ確実に勝てる
     { id: 'sea', name: '海', enemy: 'ビリビリクラゲ', icon: '🪼', pet: 'turtle', ready: true,
-      req: { int: 15, str: 7, sta: 5 }, fresh: 16, xp: 120,
+      req: { int: 15, str: 7, sta: 5 }, fresh: 16, xp: 120, coins: 40,
       enemyBase: 30, enemyPer: 8, backMin: 3, backSpread: 4 },
     { id: 'desert', name: '砂漠', enemy: 'デスストーカー', icon: '🦂', pet: 'fennec', ready: false,
-      req: { int: 30, str: 13, sta: 10 }, fresh: 30 },
+      req: { int: 30, str: 13, sta: 10 }, fresh: 30, coins: 70 },
     { id: 'snow', name: '雪山', enemy: 'アイスゴーレム', icon: '🗿', pet: 'snowhare', ready: false,
-      req: { int: 50, str: 20, sta: 16 }, fresh: 48 },
+      req: { int: 50, str: 20, sta: 16 }, fresh: 48, coins: 120 },
     { id: 'volcano', name: '火山', enemy: 'ドラゴン', icon: '🐲', pet: 'minidragon', ready: false,
-      req: { int: 75, str: 28, sta: 24 }, fresh: 70 },
+      req: { int: 75, str: 28, sta: 24 }, fresh: 70, coins: 200 },
   ];
 
   // ease: 冒険の必要条件を STAGE_EASE ぶんやさしくするペット

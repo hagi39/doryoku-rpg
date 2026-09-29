@@ -355,6 +355,7 @@
       card.appendChild(U.el('div', { class: 'notice notice--good' },
         r.first
           ? st.enemy + 'を倒した! 「' + pet.name + '」が仲間になった。' + pet.icon + ' 経験値 +' + r.xp +
+            (r.coins ? ' コイン +' + r.coins : '') +
             (r.leveledUp ? ' レベルアップ! Lv.' + r.level : '')
           : pet.name + 'はもう仲間です。'));
       card.appendChild(U.el('p', { class: 'quiz-note', text: pet.name + ': ' + pet.text }));

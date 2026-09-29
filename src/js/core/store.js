@@ -71,6 +71,8 @@
       geo: { countries: {}, areasCleared: [] },
       companions: { chick: false, turtle: false },
       stageClears: {},     // ステージid → 初めてクリアした時刻(ペットとは別に持つ。コインをさかのぼって渡すときに使う)
+      coins: 0,            // 持っているコイン(ショップで使う予定)
+      coinPaid: {},        // ステージid → true(そのステージのクリア分のコインを渡し済み。二重に渡さないため)
       daily: {},           // 「1日1回だけ経験値」の判定用
       createdAt: now,
       updatedAt: now,
@@ -143,6 +145,11 @@
       ? Object.assign({}, saved.stageClears) : {};
     // クリア記録ができる前のセーブは、ひよこがいれば草原をクリアしている(時刻は分からないので0)
     if (out.companions.chick && typeof out.stageClears.grass !== 'number') out.stageClears.grass = 0;
+    // コインができる前のセーブは 0枚・渡し済みなしで読む(クリア分は起動時にさかのぼって渡す)
+    out.coins = typeof saved.coins === 'number' && isFinite(saved.coins) && saved.coins > 0
+      ? Math.floor(saved.coins) : 0;
+    out.coinPaid = saved.coinPaid && typeof saved.coinPaid === 'object'
+      ? Object.assign({}, saved.coinPaid) : {};
     out.skills = saved.skills && typeof saved.skills === 'object' ? saved.skills : {};
     out.logs = Array.isArray(saved.logs) ? saved.logs : [];
     out.reviewList = Array.isArray(saved.reviewList) ? saved.reviewList : [];
